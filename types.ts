@@ -171,6 +171,11 @@ export interface Prospect {
   leadScore?: number; // 0-100 score
   painPoints?: string[]; // Specific problems identified
   suggestedOutreach?: string; // Tailored hook/opener
+  // Enrichment fields (Outreach Agent integration)
+  decisionMaker?: string;
+  decisionMakerTitle?: string;
+  contactEmail?: string;
+  enrichmentStatus?: 'idle' | 'searching' | 'complete' | 'failed';
 }
 
 // Outreach Agent Types

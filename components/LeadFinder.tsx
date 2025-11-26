@@ -1,8 +1,7 @@
 
-
 import React, { useState } from 'react';
-import { Search, MapPin, Building2, Plus, Check, Loader2, Globe, Star, Users, ExternalLink, BrainCircuit, Activity, AlertCircle, MessageCircle } from 'lucide-react';
-import { findProspects } from '../services/geminiService';
+import { Search, MapPin, Building2, Plus, Check, Loader2, Globe, Star, Users, ExternalLink, BrainCircuit, Activity, AlertCircle, MessageCircle, UserPlus, ShieldCheck } from 'lucide-react';
+import { findProspects, findDecisionMaker } from '../services/geminiService';
 import { Prospect, Contact } from '../types';
 
 interface LeadFinderProps {
@@ -23,20 +22,60 @@ export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
     setIsSearching(true);
     setProspects([]); // Clear previous results
     
-    // Call the SDR Agent service
+    // 1. Call the SDR Agent service (Maps)
     const results = await findProspects(niche, location);
-    setProspects(results);
+    
+    // Initialize results with enrichment status
+    const initializedResults = results.map(p => ({
+        ...p,
+        enrichmentStatus: 'searching' as const
+    }));
+
+    setProspects(initializedResults);
     setLastSearch(`${niche} in ${location}`);
     setIsSearching(false);
+
+    // 2. Automatically chain Outreach Agent (Search) for each result
+    initializedResults.forEach(async (prospect) => {
+        try {
+            const enrichedData = await findDecisionMaker(prospect.name, location);
+            
+            setProspects(current => current.map(p => {
+                if (p.id !== prospect.id) return p;
+                
+                if (!enrichedData) return { ...p, enrichmentStatus: 'failed' };
+
+                return {
+                    ...p,
+                    enrichmentStatus: 'complete',
+                    decisionMaker: enrichedData.decisionMaker,
+                    decisionMakerTitle: enrichedData.title,
+                    contactEmail: enrichedData.contactInfo
+                };
+            }));
+        } catch (error) {
+            console.error("Auto-enrichment failed for", prospect.name, error);
+            setProspects(current => current.map(p => p.id === prospect.id ? { ...p, enrichmentStatus: 'failed' } : p));
+        }
+    });
   };
 
   const addToCRM = (prospect: Prospect) => {
+    // Prefer enriched data if available
+    const contactName = (prospect.decisionMaker && prospect.decisionMaker !== 'Unknown') 
+        ? prospect.decisionMaker 
+        : 'Decision Maker';
+    
+    const contactEmail = (prospect.contactEmail && prospect.contactEmail !== 'None') 
+        ? prospect.contactEmail 
+        : '';
+
     const newContact: Contact = {
         id: Date.now().toString(),
-        name: 'Decision Maker', // Placeholder as Maps often just gives biz name
+        name: contactName,
         company: prospect.name,
-        email: '', // Maps doesn't reliably provide email, user would need to enrich
-        phone: '', // Could extract from Maps if available, simplified for now
+        email: contactEmail,
+        phone: '', 
         value: 1000,
         stage: 'new',
         lastContact: 'Never',
@@ -44,7 +83,8 @@ export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
         customFields: [
             { id: 'addr', label: 'Address', value: prospect.address },
             { id: 'web', label: 'Website', value: prospect.website || '' },
-            { id: 'src', label: 'Source', value: 'Google Maps Agent' },
+            { id: 'src', label: 'Source', value: 'Auto-SDR Agent' },
+            { id: 'title', label: 'Title', value: prospect.decisionMakerTitle || 'Unknown' },
             { id: 'analysis', label: 'AI Analysis', value: prospect.analysis || '' },
             { id: 'hook', label: 'Outreach Hook', value: prospect.suggestedOutreach || '' }
         ]
@@ -68,7 +108,7 @@ export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h2 className="text-2xl font-black text-white tracking-tight uppercase mb-1">SDR Agent</h2>
-                <p className="text-zinc-500 font-mono text-sm">Find and analyze prospects using the Knowledge Base.</p>
+                <p className="text-zinc-500 font-mono text-sm">Find prospects and auto-enrich with decision maker data.</p>
             </div>
         </div>
       </div>
@@ -167,6 +207,32 @@ export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
                                         <span className="line-clamp-1">{prospect.address}</span>
                                     </div>
 
+                                    {/* Decision Maker (Outreach Agent) Section */}
+                                    <div className="bg-zinc-900 border border-zinc-700 p-3 min-h-[80px] flex flex-col justify-center">
+                                        {prospect.enrichmentStatus === 'searching' && (
+                                            <div className="flex items-center gap-2 text-zinc-500 text-xs">
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                                <span className="uppercase font-mono">Finding Decision Maker...</span>
+                                            </div>
+                                        )}
+                                        {prospect.enrichmentStatus === 'failed' && (
+                                            <div className="text-zinc-500 text-xs uppercase font-mono">Decision Maker Not Found</div>
+                                        )}
+                                        {prospect.enrichmentStatus === 'complete' && (
+                                            <div className="animate-in fade-in">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <UserPlus className="w-3 h-3 text-lime-400" />
+                                                    <span className="text-[10px] font-black uppercase text-lime-400">Decision Maker Found</span>
+                                                </div>
+                                                <div className="font-bold text-white text-sm">{prospect.decisionMaker}</div>
+                                                <div className="text-[10px] text-zinc-400 font-mono">{prospect.decisionMakerTitle}</div>
+                                                {prospect.contactEmail && prospect.contactEmail.includes('@') && (
+                                                    <div className="text-[10px] text-cyan-400 font-mono mt-1">{prospect.contactEmail}</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Pain Points */}
                                     {prospect.painPoints && prospect.painPoints.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
@@ -189,28 +255,15 @@ export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
                                             </p>
                                         </div>
                                     )}
-
-                                    {/* AI Analysis Block (Fallback/Additional) */}
-                                    {prospect.analysis && !prospect.suggestedOutreach && (
-                                        <div className="bg-zinc-900 border border-zinc-700 p-2 mt-2">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <BrainCircuit className="w-3 h-3 text-purple-400" />
-                                                <span className="text-[10px] font-black uppercase text-purple-400">Analysis</span>
-                                            </div>
-                                            <p className="text-[10px] text-zinc-300 leading-tight">
-                                                {prospect.analysis}
-                                            </p>
-                                        </div>
-                                    )}
                                 </div>
 
                                 <button 
                                     onClick={() => addToCRM(prospect)}
-                                    disabled={prospect.status === 'added'}
+                                    disabled={prospect.status === 'added' || prospect.enrichmentStatus === 'searching'}
                                     className={`w-full py-3 font-bold uppercase text-xs flex items-center justify-center gap-2 border-2 transition-all ${
                                         prospect.status === 'added' 
                                         ? 'bg-zinc-900 border-zinc-800 text-zinc-500 cursor-default' 
-                                        : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-lime-400 hover:text-black hover:border-lime-400'
+                                        : 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-lime-400 hover:text-black hover:border-lime-400 disabled:opacity-50 disabled:cursor-not-allowed'
                                     }`}
                                 >
                                     {prospect.status === 'added' ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
