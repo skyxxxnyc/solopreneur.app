@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, Chat } from '@google/genai';
-import { Bot, Mic, Square, Send, MessageSquare, Mic2, Settings2, Trash2, Save, ChevronDown, Activity, Clock, Heart, BarChart3, TrendingUp, RefreshCw, Link, FileText, Upload, AlertCircle, Star, X, CheckCircle2, Plus } from 'lucide-react';
+import { Bot, Mic, Square, Send, MessageSquare, Mic2, Settings2, Trash2, Save, ChevronDown, Activity, Clock, Heart, BarChart3, TrendingUp, RefreshCw, Link, FileText, Upload, AlertCircle, Star, X, CheckCircle2, Plus, Volume2, Gauge } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ChatMessage, AgentConfiguration, KnowledgeSource } from '../types';
 import { INITIAL_AGENT_CONFIGS } from '../constants';
@@ -149,8 +149,10 @@ const ConfigManager: React.FC<{
 
     const handleDelete = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        setSavedConfigs(prev => prev.filter(c => c.id !== id));
-        if (activeConfigId === id) setActiveConfigId(null);
+        if (confirm('Are you sure you want to delete this persona?')) {
+            setSavedConfigs(prev => prev.filter(c => c.id !== id));
+            if (activeConfigId === id) setActiveConfigId(null);
+        }
     };
 
     const filteredConfigs = savedConfigs.filter(c => c.type === type);
@@ -714,6 +716,9 @@ const VoiceAgentBuilder: React.FC<{
     // Config
     const [instruction, setInstruction] = useState('You are a helpful voice assistant.');
     const [voiceName, setVoiceName] = useState('Puck');
+    const [temp, setTemp] = useState(0.7);
+    const [pitch, setPitch] = useState(0);
+    const [speakingRate, setSpeakingRate] = useState(1.0);
     const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
     const [agentName, setAgentName] = useState('My Voice Agent');
     const [activeConfigId, setActiveConfigId] = useState<string | null>(null);
@@ -754,6 +759,9 @@ const VoiceAgentBuilder: React.FC<{
             const sessionPromise = ai.live.connect({
                 model: 'gemini-2.5-flash-native-audio-preview-09-2025',
                 config: {
+                    generationConfig: {
+                        temperature: temp,
+                    },
                     responseModalities: [Modality.AUDIO],
                     speechConfig: {
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName } },
@@ -857,6 +865,9 @@ const VoiceAgentBuilder: React.FC<{
     const loadConfig = (c: AgentConfiguration) => {
         setInstruction(c.systemInstruction);
         setVoiceName(c.voiceName || 'Puck');
+        setTemp(c.temperature || 0.7);
+        setPitch(c.pitch || 0);
+        setSpeakingRate(c.speakingRate || 1.0);
         setKnowledgeSources(c.knowledgeSources);
         setAgentName(c.name);
         setActiveConfigId(c.id);
@@ -869,7 +880,15 @@ const VoiceAgentBuilder: React.FC<{
                     savedConfigs={savedConfigs} 
                     setSavedConfigs={setSavedConfigs} 
                     onLoad={loadConfig} 
-                    currentConfigData={{ type: 'voice', systemInstruction: instruction, temperature: 0.7, voiceName, knowledgeSources }}
+                    currentConfigData={{ 
+                        type: 'voice', 
+                        systemInstruction: instruction, 
+                        temperature: temp, 
+                        voiceName, 
+                        knowledgeSources,
+                        pitch,
+                        speakingRate
+                    }}
                     type="voice"
                     activeConfigId={activeConfigId}
                     setActiveConfigId={setActiveConfigId}
@@ -883,11 +902,11 @@ const VoiceAgentBuilder: React.FC<{
                     <div>
                         <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Voice Personality</label>
                         <select value={voiceName} onChange={e => setVoiceName(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-2 text-sm text-white focus:border-lime-400">
-                            <option value="Puck">Puck</option>
-                            <option value="Charon">Charon</option>
-                            <option value="Kore">Kore</option>
-                            <option value="Fenrir">Fenrir</option>
-                            <option value="Zephyr">Zephyr</option>
+                            <option value="Puck">Puck (Male, Smooth)</option>
+                            <option value="Charon">Charon (Male, Deep)</option>
+                            <option value="Kore">Kore (Female, Warm)</option>
+                            <option value="Fenrir">Fenrir (Male, Energetic)</option>
+                            <option value="Zephyr">Zephyr (Female, Calm)</option>
                         </select>
                     </div>
                     <div>
@@ -895,10 +914,55 @@ const VoiceAgentBuilder: React.FC<{
                         <textarea 
                             value={instruction}
                             onChange={(e) => setInstruction(e.target.value)}
-                            className="w-full h-48 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y"
+                            className="w-full h-32 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y"
                             placeholder="Enter the voice agent's persona and instructions..."
                         />
                     </div>
+                    
+                    {/* Advanced Voice Settings */}
+                    <div className="bg-zinc-900 border border-zinc-800 p-3 space-y-3">
+                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-zinc-800">
+                             <Settings2 className="w-3 h-3 text-lime-400" />
+                             <span className="text-[10px] font-bold uppercase text-zinc-400">Advanced Settings</span>
+                        </div>
+                        
+                        <div>
+                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-1">
+                                <span>Temperature</span>
+                                <span>{temp}</span>
+                            </div>
+                            <input 
+                                type="range" min="0" max="1" step="0.1" 
+                                value={temp} onChange={(e) => setTemp(parseFloat(e.target.value))}
+                                className="w-full accent-lime-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                            />
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-1">
+                                <span>Pitch</span>
+                                <span>{pitch}</span>
+                            </div>
+                            <input 
+                                type="range" min="-20" max="20" step="1" 
+                                value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))}
+                                className="w-full accent-cyan-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                            />
+                        </div>
+
+                         <div>
+                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-1">
+                                <span>Speaking Rate</span>
+                                <span>{speakingRate}x</span>
+                            </div>
+                            <input 
+                                type="range" min="0.5" max="2.0" step="0.1" 
+                                value={speakingRate} onChange={(e) => setSpeakingRate(parseFloat(e.target.value))}
+                                className="w-full accent-pink-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                            />
+                        </div>
+                    </div>
+
                     <KnowledgeBaseConfig sources={knowledgeSources} setSources={setKnowledgeSources} />
                 </div>
             </div>

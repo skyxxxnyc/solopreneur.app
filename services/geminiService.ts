@@ -103,13 +103,14 @@ export const generateEmailDraft = async (leadName: string, company: string): Pro
    }
 };
 
-export const generateMarketingCampaign = async (prompt: string): Promise<{ subject: string; body: string }> => {
+export const generateMarketingCampaign = async (prompt: string, tone: string = 'Neo-brutalist, direct, high-impact'): Promise<{ subject: string; body: string }> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Generate a high-converting email marketing campaign based on this context: "${prompt}".
       Return a JSON object with 'subject' and 'body'.
-      Tone: Neo-brutalist, direct, high-impact, professional.
+      Tone: ${tone}.
+      Format the 'body' with HTML tags (use <p>, <ul>, <li>, <strong>, <br>).
       Keep the body concise (under 150 words).`,
       config: {
         responseMimeType: "application/json",

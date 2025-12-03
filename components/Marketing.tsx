@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { EmailCampaign, Contact, EmailTemplate } from '../types';
 import { Send, Plus, BarChart3, Mail, Users, CheckCircle, Clock, Wand2, Loader2, LayoutTemplate, FileText, Bold, Italic, Underline, List, Heading1, AlignLeft, Type, Trash2, Edit, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Link, Split, Trophy, Beaker } from 'lucide-react';
@@ -56,7 +57,6 @@ const RichTextEditor: React.FC<{
                 contentEditable
                 onInput={handleInput}
                 className="flex-1 min-h-[300px] p-4 text-zinc-300 font-mono text-sm leading-relaxed focus:outline-none focus:bg-zinc-900/30 transition-colors overflow-y-auto"
-                style={{ whiteSpace: 'pre-wrap' }}
             />
             {(!value && placeholder) && (
                 <div className="absolute top-[130px] left-8 pointer-events-none text-zinc-600 font-mono text-sm italic">
@@ -191,6 +191,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
   const [audience, setAudience] = useState('All Contacts');
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [aiTone, setAiTone] = useState('Professional & Direct');
   const [scheduledDate, setScheduledDate] = useState<Date>(new Date());
   
   // CRM Sync State
@@ -205,6 +206,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
   const [templateSubject, setTemplateSubject] = useState('');
   const [templateBody, setTemplateBody] = useState('');
   const [templateAiPrompt, setTemplateAiPrompt] = useState('');
+  const [templateAiTone, setTemplateAiTone] = useState('Professional & Direct');
   const [isTemplateGenerating, setIsTemplateGenerating] = useState(false);
 
   // --- Actions ---
@@ -268,7 +270,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
   const handleGenerateCampaign = async () => {
       if (!aiPrompt.trim()) return;
       setIsGenerating(true);
-      const { subject: newSubject, body: newBody } = await generateMarketingCampaign(aiPrompt);
+      const { subject: newSubject, body: newBody } = await generateMarketingCampaign(aiPrompt, aiTone);
       
       if (activeVariant === 'A') {
           if (newSubject) setSubject(newSubject);
@@ -302,7 +304,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
   const handleGenerateTemplate = async () => {
       if (!templateAiPrompt.trim()) return;
       setIsTemplateGenerating(true);
-      const { subject: newSubject, body: newBody } = await generateMarketingCampaign(templateAiPrompt);
+      const { subject: newSubject, body: newBody } = await generateMarketingCampaign(templateAiPrompt, templateAiTone);
       if (newSubject) setTemplateSubject(newSubject);
       if (newBody) setTemplateBody(newBody);
       setIsTemplateGenerating(false);
@@ -401,6 +403,17 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
                                 <Wand2 className="w-3 h-3" /> AI Content Generator {isABTestMode && `(${activeVariant})`}
                             </h3>
                             <div className="flex gap-2">
+                                <select 
+                                    value={aiTone}
+                                    onChange={(e) => setAiTone(e.target.value)}
+                                    className="bg-zinc-900 border border-zinc-700 p-2 text-white text-xs font-bold focus:border-purple-400 focus:outline-none w-32"
+                                >
+                                    <option>Professional</option>
+                                    <option>Urgent</option>
+                                    <option>Friendly</option>
+                                    <option>Sales-heavy</option>
+                                    <option>Minimalist</option>
+                                </select>
                                 <input
                                     value={aiPrompt}
                                     onChange={(e) => setAiPrompt(e.target.value)}
@@ -567,6 +580,17 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
                             <Wand2 className="w-3 h-3" /> AI Template Builder
                         </h3>
                         <div className="flex gap-2">
+                             <select 
+                                value={templateAiTone}
+                                onChange={(e) => setTemplateAiTone(e.target.value)}
+                                className="bg-zinc-900 border border-zinc-700 p-2 text-white text-xs font-bold focus:border-cyan-400 focus:outline-none w-32"
+                            >
+                                <option>Professional</option>
+                                <option>Urgent</option>
+                                <option>Friendly</option>
+                                <option>Sales-heavy</option>
+                                <option>Minimalist</option>
+                            </select>
                             <input
                                 value={templateAiPrompt}
                                 onChange={(e) => setTemplateAiPrompt(e.target.value)}
