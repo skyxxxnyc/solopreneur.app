@@ -1,6 +1,5 @@
 
-
-import { Contact, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost } from './types';
+import { Contact, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost, Appointment, InboxThread } from './types';
 
 export const PIPELINE_STAGES: PipelineStage[] = [
   { id: 'new', title: 'New Leads', color: 'border-l-cyan-400' },
@@ -240,7 +239,6 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     }
 ];
 
-// Extracted from user's PDF
 export const SDR_KNOWLEDGE_BASE = `
 **Client Profile:** Web Design & Digital Marketing Agency.
 **Services:** Web dev, SEO, AI automation.
@@ -264,3 +262,50 @@ export const SDR_KNOWLEDGE_BASE = `
 - **High Priority:** Matches ICP perfectly, clear digital gap (e.g. bad rating), high value industry (Healthcare, Real Estate).
 - **Medium Priority:** Good potential, moderate gaps.
 `;
+
+export const INITIAL_APPOINTMENTS: Appointment[] = [
+    {
+        id: 'a1',
+        title: 'Strategy Call - Alice Freeman',
+        contactId: '1',
+        startTime: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
+        endTime: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
+        status: 'confirmed',
+        type: 'consultation'
+    },
+    {
+        id: 'a2',
+        title: 'Demo - Bob Smith',
+        contactId: '2',
+        startTime: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
+        endTime: new Date(new Date().setHours(14, 30, 0, 0)).toISOString(),
+        status: 'pending',
+        type: 'demo'
+    }
+];
+
+export const INITIAL_THREADS: InboxThread[] = [
+    {
+        id: 'th1',
+        contactId: '1',
+        contactName: 'Alice Freeman',
+        lastMessage: 'Sounds good, see you then!',
+        lastMessageTime: '10:30 AM',
+        unreadCount: 1,
+        messages: [
+            { id: 'm1', direction: 'outbound', channel: 'sms', content: 'Hi Alice, confirming our call for tomorrow at 10am?', timestamp: '10:00 AM' },
+            { id: 'm2', direction: 'inbound', channel: 'sms', content: 'Sounds good, see you then!', timestamp: '10:30 AM' }
+        ]
+    },
+    {
+        id: 'th2',
+        contactId: '2',
+        contactName: 'Bob Smith',
+        lastMessage: 'Can you send the proposal?',
+        lastMessageTime: 'Yesterday',
+        unreadCount: 0,
+        messages: [
+            { id: 'm3', direction: 'inbound', channel: 'email', content: 'Hi, thanks for the demo today. Can you send the proposal?', timestamp: 'Yesterday' }
+        ]
+    }
+];

@@ -1,9 +1,51 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Contact, StageId, WorkflowNode, Prospect, EnrichedProfile } from "../types";
+import { Contact, StageId, WorkflowNode, Prospect, EnrichedProfile, InboxThread } from "../types";
 import { SDR_KNOWLEDGE_BASE } from "../constants";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// --- PICA OS HELPERS ---
+
+const picaFetch = async (endpoint: string, connectionKey: string | undefined, actionId: string, body: any) => {
+    if (!process.env.PICA_SECRET_KEY || !connectionKey) {
+        console.warn(`Missing keys for Pica endpoint: ${endpoint}. Ensure PICA_SECRET_KEY and connection keys are set.`);
+        return null;
+    }
+
+    try {
+        const url = endpoint.startsWith('http') ? endpoint : `https://api.picaos.com/v1/passthrough/${endpoint}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'x-pica-secret': process.env.PICA_SECRET_KEY,
+                'x-pica-connection-key': connectionKey,
+                'x-pica-action-id': actionId,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            console.error(`Pica API Error ${response.status}:`, await response.text());
+            return null;
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Pica Network Error:", error);
+        return null;
+    }
+};
+
+const base64UrlEncode = (str: string) => {
+    return btoa(unescape(encodeURIComponent(str)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+};
+
+// --- CORE GENERATION (Gemini) ---
 
 export const generateLeads = async (count: number = 3): Promise<Contact[]> => {
   try {
@@ -34,7 +76,6 @@ export const generateLeads = async (count: number = 3): Promise<Contact[]> => {
 
     const rawLeads = JSON.parse(response.text || "[]");
 
-    // Augment with frontend specific fields that AI doesn't need to guess
     return rawLeads.map((lead: any, index: number) => ({
       ...lead,
       id: `gen-${Date.now()}-${index}`,
@@ -172,115 +213,195 @@ export const generateSocialPost = async (topic: string, platform: string): Promi
     }
 }
 
-export const findProspects = async (niche: string, location: string): Promise<Prospect[]> => {
+export const generateSmartReply = async (thread: InboxThread): Promise<string> => {
     try {
+        const context = thread.messages.map(m => `${m.direction === 'inbound' ? 'Customer' : 'Me'}: ${m.content}`).join('\n');
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Find 5 ${niche} businesses in ${location}. 
-            Use Google Maps to get real details.
-            
-            Step 1: Get the raw business data.
-            Step 2: For each business found, cross-reference its industry against the provided KNOWLEDGE BASE below to identify specific "Industry Specific Opportunities".
-            Step 3: Analyze its digital health (Rating, Reviews, Website) against "Pain Point Identification Heuristics".
-            Step 4: Generate a tailored output.
-
-            KNOWLEDGE BASE:
-            ${SDR_KNOWLEDGE_BASE}
-            
-            IMPORTANT: Return the data strictly as a JSON array of objects. Do not include markdown formatting (like \`\`\`json).
-            Each object in the array must have these fields:
-            - name (string)
-            - address (string)
-            - rating (number)
-            - website (string, if available, otherwise empty string)
-            - reviewCount (number)
-            - analysis (string): A brief strategy note on why this specific business was selected based on the KB rules.
-            - leadScore (number): A score from 0-100. (e.g. >80 if they match a High Priority industry like Healthcare AND have a digital gap).
-            - painPoints (array of strings): List 2-3 specific issues. 
-              * If industry matches KB, list the operational pain point (e.g., "Likely high volume of manual reservations"). 
-              * If rating < 4.0, list "Reputation/Trust Issues".
-              * If no website, list "No Digital Foundation".
-            - suggestedOutreach (string): A hyper-personalized 1-sentence email opener or cold call hook. 
-              * It MUST reference the specific industry pain point from the KB if applicable.
-              * Example: "Saw you're running a clinic—we can automate your patient intake forms to save admin time."
-            `,
-            config: {
-                tools: [{ googleMaps: {} }],
-            }
+            contents: `You are an AI assistant for a digital agency. Read the following conversation history and generate a helpful, professional, yet brief response to the customer.
+            History: ${context}
+            Response rules: Be concise. If they asked for a time, propose one. If they asked for info, offer to send it. Do not sign off with "Best regards" or names.`,
         });
-
-        let jsonStr = response.text || "[]";
-        jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
-
-        const rawData = JSON.parse(jsonStr);
-        
-        return rawData.map((item: any, idx: number) => ({
-            ...item,
-            id: `prospect-${Date.now()}-${idx}`,
-            status: 'found'
-        }));
+        return response.text || "";
     } catch (error) {
-        console.error("SDR Agent error:", error);
-        return [];
+        console.error("Smart reply error", error);
+        return "";
     }
+}
+
+// --- SDR & OUTREACH (Real Perplexity Integration via Pica) ---
+
+export const findProspects = async (niche: string, location: string): Promise<Prospect[]> => {
+    console.log("Using Real SDR Agent (Perplexity via Pica)");
+    
+    // Fallback to Gemini if Pica keys are missing
+    if (!process.env.PICA_PERPLEXITY_CONNECTION_KEY) {
+        console.warn("PICA_PERPLEXITY_CONNECTION_KEY not found. Falling back to Gemini Mock.");
+        // Re-using old Gemini logic as fallback
+        try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: `Find 5 ${niche} businesses in ${location}. Return JSON array with: name, address, rating, website, reviewCount, analysis, leadScore, painPoints, suggestedOutreach.`,
+                config: { tools: [{ googleMaps: {} }] }
+            });
+            let jsonStr = response.text || "[]";
+            jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
+            const rawData = JSON.parse(jsonStr);
+            return rawData.map((item: any, idx: number) => ({ ...item, id: `prospect-${Date.now()}-${idx}`, status: 'found' }));
+        } catch (e) { return []; }
+    }
+
+    const prompt = `Research and find 5 specific ${niche} businesses in ${location}.
+    
+    Use the following KNOWLEDGE BASE for analysis:
+    ${SDR_KNOWLEDGE_BASE}
+
+    RETURN ONLY A VALID JSON ARRAY. No markdown, no intro.
+    Each object must have:
+    - name (string)
+    - address (string)
+    - rating (number, estimate if needed)
+    - website (string or empty)
+    - reviewCount (number)
+    - analysis (string: why this lead fits based on KB)
+    - leadScore (number: 0-100)
+    - painPoints (array of strings)
+    - suggestedOutreach (string: 1 sentence hook)
+    `;
+
+    const result = await picaFetch(
+        'chat/completions',
+        process.env.PICA_PERPLEXITY_CONNECTION_KEY,
+        'conn_mod_def::GCY0iK-iGks::TKAh9sv2Ts2HJdLJc5a60A',
+        {
+            model: 'sonar',
+            messages: [{ role: 'user', content: prompt }]
+        }
+    );
+
+    if (result && result.choices && result.choices[0]?.message?.content) {
+        try {
+            let content = result.choices[0].message.content;
+            // Clean markdown
+            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            const data = JSON.parse(content);
+            return data.map((item: any, idx: number) => ({
+                ...item,
+                id: `prospect-${Date.now()}-${idx}`,
+                status: 'found'
+            }));
+        } catch (e) {
+            console.error("Failed to parse Perplexity JSON", e);
+            return [];
+        }
+    }
+    return [];
 }
 
 export const findDecisionMaker = async (company: string, location: string): Promise<EnrichedProfile | null> => {
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `Find the decision maker (Owner, Founder, CEO, or Managing Director) for "${company}" in "${location}".
-            
-            Search public sources like Yelp business owner replies, Manta listings, Better Business Bureau, or their official website "About" page.
-            
-            Task:
-            1. Identify the name of the owner/decision maker.
-            2. Identify their job title.
-            3. Infer a likely contact method (generic email or phone number found publicly).
-            
-            Output your response as a strictly valid JSON object. Do not wrap in markdown.
-            Fields:
-            - decisionMaker (string): Name of person, or "Unknown"
-            - title (string): Title, or "N/A"
-            - contactInfo (string): Public email/phone found, or "Not listed"
-            - sources (array of strings): List of URLs where you found this info.
-            - confidence (string): "High" if name found on official site/Yelp owner reply, "Medium" if directory listing, "Low" if inferred.
-            - notes (string): Brief explanation of where you found it (e.g. "Found 'Joe' responding to Yelp reviews as Owner").
-            `,
-            config: {
-                tools: [{ googleSearch: {} }],
-            }
-        });
+    console.log("Using Real Outreach Agent (Perplexity via Pica)");
 
-        // Search grounding requires us to parse the response manually or ask for JSON string.
-        let jsonStr = response.text || "{}";
-        jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
-        
-        // Sometimes text models chatter before JSON, find the first { and last }
-        const start = jsonStr.indexOf('{');
-        const end = jsonStr.lastIndexOf('}');
-        if (start !== -1 && end !== -1) {
-            jsonStr = jsonStr.substring(start, end + 1);
-        }
-
-        const data = JSON.parse(jsonStr);
-        
-        // Extract grounding sources if available in metadata (Gemini 2.5 often puts them in text or metadata)
-        // For this implementation, we trust the model's "sources" field if it filled it, 
-        // but we can also look at groundingMetadata if we were using a different access pattern.
-        
+    // Fallback
+    if (!process.env.PICA_PERPLEXITY_CONNECTION_KEY) {
         return {
-            company: company,
-            decisionMaker: data.decisionMaker || "Unknown",
-            title: data.title || "Unknown",
-            contactInfo: data.contactInfo || "None",
-            sources: data.sources || [],
-            confidence: data.confidence || "Low",
-            notes: data.notes || "AI Search complete."
+            company,
+            decisionMaker: "Unknown (Missing API Key)",
+            title: "N/A",
+            contactInfo: "None",
+            sources: [],
+            confidence: "Low",
+            notes: "Please configure PICA_PERPLEXITY_CONNECTION_KEY."
         };
-
-    } catch (error) {
-        console.error("Outreach Agent error:", error);
-        return null;
     }
+
+    const prompt = `Find the Owner, Founder, or CEO of "${company}" in "${location}".
+    Search for public email addresses or phone numbers associated with the business or owner.
+    
+    RETURN ONLY A VALID JSON OBJECT. No markdown.
+    Fields:
+    - decisionMaker (string: Name or "Unknown")
+    - title (string)
+    - contactInfo (string: Found email/phone or "None")
+    - sources (array of strings: URLs)
+    - confidence (string: "High", "Medium", "Low")
+    - notes (string: e.g. "Found LinkedIn profile" or "Mentioned on website")
+    `;
+
+    const result = await picaFetch(
+        'chat/completions',
+        process.env.PICA_PERPLEXITY_CONNECTION_KEY,
+        'conn_mod_def::GCY0iK-iGks::TKAh9sv2Ts2HJdLJc5a60A',
+        {
+            model: 'sonar',
+            messages: [{ role: 'user', content: prompt }]
+        }
+    );
+
+    if (result && result.choices && result.choices[0]?.message?.content) {
+        try {
+            let content = result.choices[0].message.content;
+            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            // Handle cases where AI adds extra text before/after JSON
+            const start = content.indexOf('{');
+            const end = content.lastIndexOf('}');
+            if (start !== -1 && end !== -1) {
+                content = content.substring(start, end + 1);
+            }
+            const data = JSON.parse(content);
+            return { ...data, company };
+        } catch (e) {
+            console.error("Failed to parse Perplexity JSON for Decision Maker", e);
+            return null;
+        }
+    }
+    return null;
 }
+
+// --- REAL INTEGRATIONS (Gmail & Calendar via Pica) ---
+
+export const sendRealEmail = async (to: string, subject: string, body: string): Promise<boolean> => {
+    if (!process.env.PICA_GMAIL_CONNECTION_KEY) {
+        console.warn("PICA_GMAIL_CONNECTION_KEY missing. Simulating send.");
+        return new Promise(r => setTimeout(() => r(true), 1000));
+    }
+
+    // Construct MIME message
+    const mime = [
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        `Content-Type: text/plain; charset=UTF-8`,
+        ``,
+        body
+    ].join('\n');
+
+    const raw = base64UrlEncode(mime);
+
+    const result = await picaFetch(
+        'users/me/messages/send',
+        process.env.PICA_GMAIL_CONNECTION_KEY,
+        'conn_mod_def::F_JeJ_A_TKg::cc2kvVQQTiiIiLEDauy6zQ',
+        { raw }
+    );
+
+    return !!result?.id;
+};
+
+export const scheduleMeeting = async (title: string, date: string, time: string): Promise<boolean> => {
+    if (!process.env.PICA_GOOGLE_CALENDAR_CONNECTION_KEY) {
+        console.warn("PICA_GOOGLE_CALENDAR_CONNECTION_KEY missing. Simulating schedule.");
+        return new Promise(r => setTimeout(() => r(true), 1000));
+    }
+
+    const text = `${title} on ${date} at ${time}`;
+    const encodedText = encodeURIComponent(text);
+    
+    // QuickAdd endpoint accepts text param
+    const result = await picaFetch(
+        `calendars/primary/events/quickAdd?text=${encodedText}`,
+        process.env.PICA_GOOGLE_CALENDAR_CONNECTION_KEY,
+        'conn_mod_def::F_Jd9lD1m3Y::XwU7qyzzQJSb6VGapt1tcQ',
+        {} // Body must be empty object
+    );
+
+    return !!result?.id;
+};

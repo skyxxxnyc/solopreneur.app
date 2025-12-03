@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, Chat } from '@google/genai';
-import { Bot, Mic, Square, Send, MessageSquare, Mic2, Settings2, Trash2, Save, ChevronDown, Activity, Clock, Heart, BarChart3, TrendingUp, RefreshCw, Link, FileText, Upload, AlertCircle, Star, X, CheckCircle2 } from 'lucide-react';
+import { Bot, Mic, Square, Send, MessageSquare, Mic2, Settings2, Trash2, Save, ChevronDown, Activity, Clock, Heart, BarChart3, TrendingUp, RefreshCw, Link, FileText, Upload, AlertCircle, Star, X, CheckCircle2, Plus } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ChatMessage, AgentConfiguration, KnowledgeSource } from '../types';
 import { INITIAL_AGENT_CONFIGS } from '../constants';
@@ -116,11 +117,16 @@ const ConfigManager: React.FC<{
     onLoad: (config: AgentConfiguration) => void;
     currentConfigData: Omit<AgentConfiguration, 'id' | 'name'>;
     type: 'text' | 'voice';
-}> = ({ savedConfigs, setSavedConfigs, onLoad, currentConfigData, type }) => {
+    activeConfigId: string | null;
+    setActiveConfigId: (id: string | null) => void;
+    agentName: string;
+}> = ({ savedConfigs, setSavedConfigs, onLoad, currentConfigData, type, activeConfigId, setActiveConfigId, agentName }) => {
     const [newConfigName, setNewConfigName] = useState('');
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
 
-    const handleSave = () => {
+    const activeConfig = savedConfigs.find(c => c.id === activeConfigId);
+
+    const handleSaveNew = () => {
         if (!newConfigName) return;
         const newConfig: AgentConfiguration = {
             id: Date.now().toString(),
@@ -129,11 +135,22 @@ const ConfigManager: React.FC<{
         };
         setSavedConfigs(prev => [...prev, newConfig]);
         setNewConfigName('');
+        setActiveConfigId(newConfig.id);
+    };
+
+    const handleUpdate = () => {
+        if (!activeConfigId) return;
+        setSavedConfigs(prev => prev.map(c => 
+            c.id === activeConfigId 
+                ? { ...c, ...currentConfigData, name: agentName } 
+                : c
+        ));
     };
 
     const handleDelete = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         setSavedConfigs(prev => prev.filter(c => c.id !== id));
+        if (activeConfigId === id) setActiveConfigId(null);
     };
 
     const filteredConfigs = savedConfigs.filter(c => c.type === type);
@@ -150,29 +167,56 @@ const ConfigManager: React.FC<{
             
             {isExpanded && (
                 <div className="space-y-3 animate-in slide-in-from-top-2">
-                    <div className="flex gap-2">
-                        <input 
-                            value={newConfigName}
-                            onChange={(e) => setNewConfigName(e.target.value)}
-                            placeholder="Name current setup..."
-                            className="flex-1 bg-zinc-950 border border-zinc-700 p-2 text-xs text-white focus:border-lime-400 focus:outline-none"
-                        />
-                        <button 
-                            onClick={handleSave}
-                            disabled={!newConfigName}
-                            className="bg-zinc-800 text-lime-400 p-2 border border-zinc-700 hover:bg-zinc-700 disabled:opacity-50"
-                        >
-                            <Save className="w-4 h-4" />
-                        </button>
+                    {/* Controls for Active vs New */}
+                    <div className="flex flex-col gap-2">
+                        {activeConfigId && (
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={handleUpdate}
+                                    className="flex-1 bg-zinc-800 border border-lime-400 text-lime-400 p-2 text-xs font-bold uppercase hover:bg-lime-400 hover:text-black transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Save className="w-3 h-3" /> Update "{activeConfig?.name || agentName}"
+                                </button>
+                                <button 
+                                    onClick={() => setActiveConfigId(null)}
+                                    className="bg-zinc-900 border border-zinc-700 text-zinc-500 p-2 hover:text-white"
+                                    title="Deselect"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            </div>
+                        )}
+                        
+                        <div className="flex gap-2">
+                            <input 
+                                value={newConfigName}
+                                onChange={(e) => setNewConfigName(e.target.value)}
+                                placeholder="Save as new persona..."
+                                className="flex-1 bg-zinc-950 border border-zinc-700 p-2 text-xs text-white focus:border-lime-400 focus:outline-none"
+                            />
+                            <button 
+                                onClick={handleSaveNew}
+                                disabled={!newConfigName}
+                                className="bg-zinc-800 text-zinc-300 p-2 border border-zinc-700 hover:bg-zinc-700 disabled:opacity-50 hover:text-white"
+                                title="Save New"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
+
                     <div className="max-h-40 overflow-y-auto space-y-1">
                         {filteredConfigs.map(config => (
                             <div 
                                 key={config.id} 
                                 onClick={() => onLoad(config)}
-                                className="group flex justify-between items-center p-2 bg-zinc-900 border border-zinc-800 hover:border-lime-400 cursor-pointer text-xs"
+                                className={`group flex justify-between items-center p-2 border cursor-pointer text-xs transition-colors ${
+                                    activeConfigId === config.id 
+                                    ? 'bg-lime-900/20 border-lime-500/50 text-lime-400' 
+                                    : 'bg-zinc-900 border-zinc-800 hover:border-lime-400 text-zinc-300'
+                                }`}
                             >
-                                <span className="font-bold text-zinc-300">{config.name}</span>
+                                <span className="font-bold">{config.name}</span>
                                 <button onClick={(e) => handleDelete(config.id, e)} className="text-zinc-600 hover:text-red-500">
                                     <Trash2 className="w-3 h-3" />
                                 </button>
@@ -460,6 +504,7 @@ const TextAgentBuilder: React.FC<{
     const [model, setModel] = useState('gemini-2.5-flash');
     const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
     const [agentName, setAgentName] = useState('My Text Agent');
+    const [activeConfigId, setActiveConfigId] = useState<string | null>(null);
 
     // Session State
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -524,6 +569,7 @@ const TextAgentBuilder: React.FC<{
         setModel(c.model || 'gemini-2.5-flash');
         setKnowledgeSources(c.knowledgeSources);
         setAgentName(c.name);
+        setActiveConfigId(c.id);
     };
 
     const handleEndSession = () => {
@@ -565,6 +611,9 @@ const TextAgentBuilder: React.FC<{
                     onLoad={loadConfig} 
                     currentConfigData={{ type: 'text', systemInstruction: instruction, temperature: temp, model, knowledgeSources }}
                     type="text"
+                    activeConfigId={activeConfigId}
+                    setActiveConfigId={setActiveConfigId}
+                    agentName={agentName}
                 />
 
                 <div className="space-y-4">
@@ -584,7 +633,8 @@ const TextAgentBuilder: React.FC<{
                         <textarea 
                             value={instruction}
                             onChange={(e) => setInstruction(e.target.value)}
-                            className="w-full h-32 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-none"
+                            className="w-full h-48 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y"
+                            placeholder="Enter the system prompt here..."
                         />
                     </div>
                     <div>
@@ -666,6 +716,7 @@ const VoiceAgentBuilder: React.FC<{
     const [voiceName, setVoiceName] = useState('Puck');
     const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([]);
     const [agentName, setAgentName] = useState('My Voice Agent');
+    const [activeConfigId, setActiveConfigId] = useState<string | null>(null);
     
     // Live State
     const [isConnected, setIsConnected] = useState(false);
@@ -808,6 +859,7 @@ const VoiceAgentBuilder: React.FC<{
         setVoiceName(c.voiceName || 'Puck');
         setKnowledgeSources(c.knowledgeSources);
         setAgentName(c.name);
+        setActiveConfigId(c.id);
     };
 
     return (
@@ -819,6 +871,9 @@ const VoiceAgentBuilder: React.FC<{
                     onLoad={loadConfig} 
                     currentConfigData={{ type: 'voice', systemInstruction: instruction, temperature: 0.7, voiceName, knowledgeSources }}
                     type="voice"
+                    activeConfigId={activeConfigId}
+                    setActiveConfigId={setActiveConfigId}
+                    agentName={agentName}
                 />
                  <div className="space-y-4">
                      <div>
@@ -840,7 +895,8 @@ const VoiceAgentBuilder: React.FC<{
                         <textarea 
                             value={instruction}
                             onChange={(e) => setInstruction(e.target.value)}
-                            className="w-full h-32 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-none"
+                            className="w-full h-48 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y"
+                            placeholder="Enter the voice agent's persona and instructions..."
                         />
                     </div>
                     <KnowledgeBaseConfig sources={knowledgeSources} setSources={setKnowledgeSources} />

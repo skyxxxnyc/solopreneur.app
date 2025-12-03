@@ -13,7 +13,12 @@ import {
   Bot,
   Share2,
   ScanSearch,
-  UserPlus
+  UserPlus,
+  Calendar as CalendarIcon,
+  Inbox as InboxIcon,
+  ChevronDown,
+  Building,
+  User
 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { Pipeline } from './components/Pipeline';
@@ -26,14 +31,17 @@ import { SocialPlanner } from './components/SocialPlanner';
 import { LeadFinder } from './components/LeadFinder';
 import { OutreachAgent } from './components/OutreachAgent';
 import { Settings } from './components/Settings';
+import { Inbox } from './components/Inbox';
+import { Calendar } from './components/Calendar';
 import { INITIAL_CONTACTS, INITIAL_FUNNELS, INITIAL_CAMPAIGNS } from './constants';
 import { Contact, Funnel, EmailCampaign } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 
-type View = 'dashboard' | 'pipeline' | 'contacts' | 'automation' | 'funnels' | 'marketing' | 'conversations' | 'planner' | 'settings' | 'lead-finder' | 'outreach';
+type View = 'dashboard' | 'pipeline' | 'contacts' | 'automation' | 'funnels' | 'marketing' | 'conversations' | 'planner' | 'settings' | 'lead-finder' | 'outreach' | 'inbox' | 'calendar';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [isAgencyView, setIsAgencyView] = useState(false); // Toggle between Agency Level and Sub-account Level
   
   // Persistent "Backend" State
   const [contacts, setContacts] = useLocalStorage<Contact[]>('crm_contacts', INITIAL_CONTACTS);
@@ -58,38 +66,47 @@ const App: React.FC = () => {
     <div className="flex h-screen bg-zinc-950 text-zinc-100 font-sans overflow-hidden selection:bg-lime-400 selection:text-black">
       {/* Sidebar */}
       <div className="w-64 bg-zinc-950 border-r-2 border-zinc-800 flex flex-col">
-        <div className="p-6 border-b-2 border-zinc-800">
-          <div className="flex items-center gap-2 text-lime-400">
-            <div className="bg-lime-400 p-1 border border-black transform -rotate-3">
-                <Command className="w-5 h-5 text-black" />
-            </div>
-            <div className="flex flex-col">
-                 <h1 className="text-lg font-black tracking-tighter text-white uppercase leading-none">THE<span className="text-lime-400">SOLOPRENEUR</span></h1>
-                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest text-right -mt-1">.APP</span>
-            </div>
-          </div>
+        {/* Agency Switcher Header */}
+        <div className="p-4 border-b-2 border-zinc-800">
+           <div 
+             onClick={() => setIsAgencyView(!isAgencyView)}
+             className="bg-zinc-900 border-2 border-zinc-700 p-3 cursor-pointer hover:border-lime-400 transition-colors flex items-center justify-between group"
+           >
+              <div className="flex items-center gap-3">
+                  <div className={`p-1 border border-black transform ${isAgencyView ? 'bg-purple-500 -rotate-3' : 'bg-lime-400 rotate-3'} transition-transform group-hover:rotate-0`}>
+                      {isAgencyView ? <Building className="w-4 h-4 text-black" /> : <Command className="w-4 h-4 text-black" />}
+                  </div>
+                  <div className="flex flex-col">
+                       <span className="text-[10px] text-zinc-500 uppercase font-mono leading-none mb-0.5">{isAgencyView ? 'Agency Level' : 'Sub-Account'}</span>
+                       <span className="font-bold text-xs uppercase text-white truncate w-24">{isAgencyView ? 'HQ Admin' : 'My Empire'}</span>
+                  </div>
+              </div>
+              <ChevronDown className="w-4 h-4 text-zinc-500" />
+           </div>
         </div>
         
-        <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
-          <NavItem view="dashboard" icon={LayoutDashboard} label="Dashboard" />
+        <nav className="flex-1 py-4 space-y-1 overflow-y-auto">
+          <NavItem view="dashboard" icon={LayoutDashboard} label="Launchpad" />
+          
+          <div className="my-2 mx-4 border-t border-zinc-900"></div>
+          <div className="px-4 py-2 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Sales & CRM</div>
           <NavItem view="pipeline" icon={Kanban} label="Opportunities" />
           <NavItem view="contacts" icon={Users} label="Contacts" />
+          <NavItem view="calendar" icon={CalendarIcon} label="Calendars" />
+          <NavItem view="inbox" icon={InboxIcon} label="Conversations" />
+          
+          <div className="my-2 mx-4 border-t border-zinc-900"></div>
+          <div className="px-4 py-2 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Growth Engines</div>
           <NavItem view="lead-finder" icon={ScanSearch} label="SDR Agent" />
           <NavItem view="outreach" icon={UserPlus} label="Outreach Agent" />
-          <div className="my-2 border-t border-zinc-900"></div>
           <NavItem view="funnels" icon={Globe} label="Funnels" />
           <NavItem view="marketing" icon={Megaphone} label="Marketing" />
           <NavItem view="planner" icon={Share2} label="Social Planner" />
-          <NavItem view="automation" icon={Workflow} label="Automation" />
-          <NavItem view="conversations" icon={Bot} label="AI Agents" />
           
-          <div className="pt-6 mt-6 border-t-2 border-zinc-800 mx-4">
-             <div className="px-4 py-2 text-xs font-mono text-zinc-600 uppercase">Communications</div>
-             <button className="w-full flex items-center gap-3 px-4 py-3 text-zinc-500 hover:text-zinc-300 transition-colors">
-                <MessageSquare className="w-5 h-5" />
-                <span className="font-bold tracking-wide uppercase text-sm">Inbox</span>
-             </button>
-          </div>
+          <div className="my-2 mx-4 border-t border-zinc-900"></div>
+          <div className="px-4 py-2 text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Automation</div>
+          <NavItem view="automation" icon={Workflow} label="Workflows" />
+          <NavItem view="conversations" icon={Bot} label="AI Employees" />
         </nav>
 
         <div className="p-4 border-t-2 border-zinc-800 bg-zinc-950">
@@ -100,9 +117,14 @@ const App: React.FC = () => {
             <SettingsIcon className="w-5 h-5" />
             <span className="font-bold uppercase text-sm">Settings</span>
           </button>
-          <div className="mt-4 px-4 py-2 bg-zinc-900 border border-zinc-800">
-            <div className="text-xs text-zinc-500 font-mono">Logged in as</div>
-            <div className="font-bold text-sm text-zinc-300">Solopreneur</div>
+          <div className="mt-4 px-4 py-2 bg-zinc-900 border border-zinc-800 flex items-center gap-3">
+            <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center border border-zinc-700">
+               <User className="w-4 h-4 text-zinc-400" />
+            </div>
+            <div>
+               <div className="text-[10px] text-zinc-500 font-mono">Logged in as</div>
+               <div className="font-bold text-xs text-zinc-300">Solopreneur</div>
+            </div>
           </div>
         </div>
       </div>
@@ -112,8 +134,10 @@ const App: React.FC = () => {
         {/* Header */}
         <header className="h-16 bg-zinc-950 border-b-2 border-zinc-800 flex items-center justify-between px-8 shrink-0">
             <div className="flex items-center gap-4">
-                <span className="text-zinc-500 font-mono text-sm">WORKSPACE:</span>
-                <span className="font-bold text-white uppercase bg-zinc-900 px-3 py-1 border border-zinc-700">My Empire</span>
+                <span className="text-zinc-500 font-mono text-sm">VIEWING:</span>
+                <span className={`font-bold text-white uppercase px-3 py-1 border text-sm ${isAgencyView ? 'bg-purple-900/20 text-purple-400 border-purple-500' : 'bg-lime-900/20 text-lime-400 border-lime-500'}`}>
+                    {isAgencyView ? 'Agency Dashboard' : 'My Empire (Sub-account)'}
+                </span>
             </div>
             <div className="flex items-center gap-4">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
@@ -127,6 +151,8 @@ const App: React.FC = () => {
             {currentView === 'dashboard' && <Dashboard />}
             {currentView === 'pipeline' && <Pipeline contacts={contacts} setContacts={setContacts} />}
             {currentView === 'contacts' && <Contacts contacts={contacts} setContacts={setContacts} />}
+            {currentView === 'calendar' && <Calendar />}
+            {currentView === 'inbox' && <Inbox />}
             {currentView === 'lead-finder' && <LeadFinder setContacts={setContacts} />}
             {currentView === 'outreach' && <OutreachAgent setContacts={setContacts} />}
             {currentView === 'funnels' && <Funnels funnels={funnels} setFunnels={setFunnels} />}

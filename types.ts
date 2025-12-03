@@ -188,3 +188,36 @@ export interface EnrichedProfile {
   confidence: 'High' | 'Medium' | 'Low';
   notes: string;
 }
+
+// Inbox / Unified Messaging Types
+export type MessageChannel = 'sms' | 'email' | 'whatsapp' | 'instagram';
+
+export interface InboxMessage {
+  id: string;
+  direction: 'inbound' | 'outbound';
+  channel: MessageChannel;
+  content: string;
+  timestamp: string;
+}
+
+export interface InboxThread {
+  id: string;
+  contactId: string;
+  contactName: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  platformIcon?: string;
+  messages: InboxMessage[];
+}
+
+// Calendar / Scheduling Types
+export interface Appointment {
+  id: string;
+  title: string;
+  contactId: string; // Link to CRM
+  startTime: string; // ISO string
+  endTime: string; // ISO string
+  status: 'confirmed' | 'pending' | 'cancelled';
+  type: 'consultation' | 'onboarding' | 'demo';
+}
