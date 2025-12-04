@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Funnel, FunnelElement, ElementType } from '../types';
-import { Layout, Type, Image as ImageIcon, FormInput, MousePointerClick, Settings, Plus, Trash, ExternalLink, GripVertical } from 'lucide-react';
+import { Layout, Type, Image as ImageIcon, FormInput, MousePointerClick, Settings, Plus, Trash, ExternalLink, GripVertical, LayoutTemplate, X, Check } from 'lucide-react';
+import { FUNNEL_TEMPLATES } from '../constants';
 
 interface FunnelsProps {
   funnels: Funnel[];
   setFunnels: React.Dispatch<React.SetStateAction<Funnel[]>>;
+  tenantId: string;
 }
 
 interface DragItem {
@@ -14,16 +15,19 @@ interface DragItem {
   elementType?: ElementType;
 }
 
-export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels }) => {
+export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels, tenantId }) => {
   const [activeFunnelId, setActiveFunnelId] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<DragItem | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   
   const activeFunnel = funnels.find(f => f.id === activeFunnelId);
+  const tenantFunnels = funnels.filter(f => f.tenantId === tenantId);
 
   const createFunnel = () => {
     const newFunnel: Funnel = {
         id: Date.now().toString(),
+        tenantId: tenantId,
         name: 'New Funnel Campaign',
         status: 'draft',
         visits: 0,
@@ -39,6 +43,32 @@ export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels }) => {
 
   const handleUpdateFunnel = (updatedFunnel: Funnel) => {
       setFunnels(funnels.map(f => f.id === updatedFunnel.id ? updatedFunnel : f));
+  };
+
+  const handleLoadTemplate = (template: Funnel) => {
+    if (activeFunnelId && activeFunnel) {
+        // We are in editor mode, replace content
+        if(confirm('This will overwrite your current design. Continue?')) {
+             const newElements = template.elements.map((el, i) => ({...el, id: Date.now().toString() + i}));
+             handleUpdateFunnel({...activeFunnel, elements: newElements});
+             setIsLibraryOpen(false);
+        }
+    } else {
+        // We are in list mode, create new
+        const newFunnel: Funnel = {
+            ...template,
+            id: Date.now().toString(),
+            tenantId: tenantId,
+            name: `${template.name} (Copy)`,
+            status: 'draft',
+            visits: 0,
+            conversions: 0,
+            elements: template.elements.map((el, i) => ({...el, id: Date.now().toString() + i}))
+        };
+        setFunnels([...funnels, newFunnel]);
+        setActiveFunnelId(newFunnel.id);
+        setIsLibraryOpen(false);
+    }
   };
 
   const deleteElement = (index: number) => {
@@ -145,7 +175,7 @@ export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels }) => {
 
   if (activeFunnelId && activeFunnel) {
     return (
-        <div className="h-full flex flex-col animate-in fade-in duration-500">
+        <div className="h-full flex flex-col animate-in fade-in duration-500 relative">
              {/* Builder Header */}
             <div className="bg-zinc-900 border-2 border-zinc-800 p-4 shadow-[4px_4px_0px_0px_#27272a] flex justify-between items-center mb-4 shrink-0">
                 <div className="flex items-center gap-4">
@@ -158,6 +188,12 @@ export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels }) => {
                     />
                 </div>
                 <div className="flex gap-3">
+                    <button 
+                        onClick={() => setIsLibraryOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 border-2 border-zinc-700 text-zinc-300 font-bold text-xs uppercase hover:bg-zinc-800 hover:text-white hover:border-zinc-500"
+                    >
+                        <LayoutTemplate className="w-4 h-4" /> Templates
+                    </button>
                     <button className="flex items-center gap-2 px-4 py-2 border-2 border-zinc-700 text-zinc-300 font-bold text-xs uppercase hover:bg-zinc-800">
                         <Settings className="w-4 h-4" /> Settings
                     </button>
@@ -280,28 +316,84 @@ export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels }) => {
                     </div>
                 </div>
             </div>
+
+            {/* Template Library Modal (Editor Mode) */}
+            {isLibraryOpen && (
+                <div className="absolute inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full md:w-[600px] bg-zinc-950 border-l-2 border-zinc-800 shadow-[-4px_0px_0px_0px_#27272a] h-full flex flex-col animate-in slide-in-from-right duration-300">
+                        <div className="p-6 border-b-2 border-zinc-800 bg-zinc-900 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-xl font-black text-white uppercase flex items-center gap-2">
+                                    <LayoutTemplate className="w-5 h-5" />
+                                    Template Library
+                                </h3>
+                            </div>
+                            <button onClick={() => setIsLibraryOpen(false)} className="p-2 hover:bg-zinc-800 transition-colors">
+                                <X className="w-5 h-5 text-zinc-400" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                            {FUNNEL_TEMPLATES.map(template => (
+                                <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-4 hover:border-lime-400 transition-colors group">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h4 className="font-bold text-white uppercase">{template.name}</h4>
+                                        <span className="bg-zinc-800 text-zinc-500 text-[10px] font-mono px-2 py-1 rounded-none border border-zinc-700">
+                                            {template.elements.length} Elements
+                                        </span>
+                                    </div>
+                                    <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+                                        {template.elements.map((el, i) => (
+                                            <div key={i} className="flex items-center text-[10px] text-zinc-500 font-mono shrink-0">
+                                                {i > 0 && <span className="mx-1">→</span>}
+                                                <span className="uppercase">{el.type}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        onClick={() => handleLoadTemplate(template)}
+                                        className="w-full py-2 bg-zinc-950 border border-zinc-700 text-zinc-300 font-bold uppercase text-xs hover:bg-lime-400 hover:text-black hover:border-lime-400 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Check className="w-3 h-3" />
+                                        Use Template
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in duration-500">
+    <div className="h-full flex flex-col animate-in fade-in duration-500 relative">
       <div className="mb-6 flex justify-between items-center bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
         <div>
            <h2 className="text-2xl font-black text-white tracking-tight uppercase mb-1">Funnel Builder</h2>
            <p className="text-zinc-500 font-mono text-sm">Design high-converting landing pages.</p>
         </div>
-        <button 
-            onClick={createFunnel}
-            className="flex items-center gap-2 bg-lime-400 text-black px-6 py-3 font-bold border-2 border-lime-500 hover:translate-y-1 hover:shadow-none shadow-[4px_4px_0px_0px_#3f3f46] transition-all"
-        >
-            <Plus className="w-5 h-5" />
-            NEW FUNNEL
-        </button>
+        <div className="flex gap-3">
+             <button 
+                onClick={() => setIsLibraryOpen(true)}
+                className="flex items-center gap-2 bg-zinc-900 text-zinc-300 px-6 py-3 font-bold border-2 border-zinc-700 hover:text-white hover:border-zinc-500 transition-all"
+            >
+                <LayoutTemplate className="w-5 h-5" />
+                TEMPLATES
+            </button>
+            <button 
+                onClick={createFunnel}
+                className="flex items-center gap-2 bg-lime-400 text-black px-6 py-3 font-bold border-2 border-lime-500 hover:translate-y-1 hover:shadow-none shadow-[4px_4px_0px_0px_#3f3f46] transition-all"
+            >
+                <Plus className="w-5 h-5" />
+                NEW FUNNEL
+            </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {funnels.map(funnel => (
+        {tenantFunnels.map(funnel => (
             <div key={funnel.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a] hover:border-zinc-600 transition-colors flex flex-col h-64">
                 <div className="flex justify-between items-start mb-4">
                     <div className={`px-2 py-1 text-[10px] font-bold uppercase border ${funnel.status === 'published' ? 'text-lime-400 border-lime-400' : 'text-zinc-500 border-zinc-700'}`}>
@@ -333,6 +425,53 @@ export const Funnels: React.FC<FunnelsProps> = ({ funnels, setFunnels }) => {
             </div>
         ))}
       </div>
+
+       {/* Template Library Modal (List Mode) */}
+       {isLibraryOpen && (
+            <div className="absolute inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="w-full md:w-[600px] bg-zinc-950 border-l-2 border-zinc-800 shadow-[-4px_0px_0px_0px_#27272a] h-full flex flex-col animate-in slide-in-from-right duration-300">
+                    <div className="p-6 border-b-2 border-zinc-800 bg-zinc-900 flex justify-between items-center">
+                        <div>
+                            <h3 className="text-xl font-black text-white uppercase flex items-center gap-2">
+                                <LayoutTemplate className="w-5 h-5" />
+                                Template Library
+                            </h3>
+                        </div>
+                        <button onClick={() => setIsLibraryOpen(false)} className="p-2 hover:bg-zinc-800 transition-colors">
+                            <X className="w-5 h-5 text-zinc-400" />
+                        </button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                         {FUNNEL_TEMPLATES.map(template => (
+                             <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-4 hover:border-lime-400 transition-colors group">
+                                 <div className="flex justify-between items-start mb-2">
+                                     <h4 className="font-bold text-white uppercase">{template.name}</h4>
+                                     <span className="bg-zinc-800 text-zinc-500 text-[10px] font-mono px-2 py-1 rounded-none border border-zinc-700">
+                                         {template.elements.length} Elements
+                                     </span>
+                                 </div>
+                                 <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+                                     {template.elements.map((el, i) => (
+                                         <div key={i} className="flex items-center text-[10px] text-zinc-500 font-mono shrink-0">
+                                             {i > 0 && <span className="mx-1">→</span>}
+                                             <span className="uppercase">{el.type}</span>
+                                         </div>
+                                     ))}
+                                 </div>
+                                 <button 
+                                    onClick={() => handleLoadTemplate(template)}
+                                    className="w-full py-2 bg-zinc-950 border border-zinc-700 text-zinc-300 font-bold uppercase text-xs hover:bg-lime-400 hover:text-black hover:border-lime-400 transition-colors flex items-center justify-center gap-2"
+                                 >
+                                     <Check className="w-3 h-3" />
+                                     Create from Template
+                                 </button>
+                             </div>
+                         ))}
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };

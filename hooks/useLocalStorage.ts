@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
@@ -16,6 +17,11 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
   };
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
+
+  // Update storedValue if key changes (Tenant switch)
+  useEffect(() => {
+    setStoredValue(readValue());
+  }, [key]);
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {

@@ -1,20 +1,30 @@
-
 import React, { useState } from 'react';
 import { SocialPost, SocialPlatform } from '../types';
 import { INITIAL_SOCIAL_POSTS } from '../constants';
-import { generateSocialPost, generateBrandAsset } from '../services/geminiService';
-import { Share2, Calendar as CalendarIcon, Wand2, Image as ImageIcon, Loader2, Twitter, Linkedin, Instagram, Plus, X, Trash2, CheckCircle, Heart, MessageCircle, Repeat2, Send, Bookmark, MoreHorizontal, ThumbsUp, Eye, List as ListIcon, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { generateSocialPost, generateBrandAsset, generateSocialVideo, analyzeImageForCaption } from '../services/geminiService';
+import { Share2, Calendar as CalendarIcon, Wand2, Image as ImageIcon, Loader2, Twitter, Linkedin, Instagram, Plus, X, Trash2, CheckCircle, Heart, MessageCircle, Repeat2, Send, Bookmark, MoreHorizontal, ThumbsUp, Eye, List as ListIcon, ChevronLeft, ChevronRight, Clock, Video, ScanEye } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const PostPreview: React.FC<{
     platform: SocialPlatform;
     content: string;
     image: string | null;
+    video: string | null;
     hashtags: string[];
-}> = ({ platform, content, image, hashtags }) => {
+}> = ({ platform, content, image, video, hashtags }) => {
     const renderContent = () => {
         const fullText = `${content} ${hashtags.join(' ')}`;
         
+        const MediaContent = () => {
+            if (video) {
+                return <video src={video} controls className="w-full h-auto rounded-xl border border-zinc-800 mb-3 object-cover max-h-80" />;
+            }
+            if (image) {
+                return <img src={image} className="w-full h-auto rounded-xl border border-zinc-800 mb-3 object-cover max-h-80" alt="Preview" />;
+            }
+            return null;
+        };
+
         if (platform === 'twitter') {
             return (
                 <div className="bg-black text-white p-4 rounded-xl border border-zinc-800 max-w-md w-full font-sans">
@@ -28,9 +38,7 @@ const PostPreview: React.FC<{
                             <p className="text-[15px] leading-normal whitespace-pre-wrap mb-3 text-zinc-200">
                                 {fullText || <span className="text-zinc-600 italic">Start writing...</span>}
                             </p>
-                            {image && (
-                                <img src={image} className="w-full h-auto rounded-xl border border-zinc-800 mb-3 object-cover max-h-80" alt="Preview" />
-                            )}
+                            <MediaContent />
                             <div className="flex justify-between text-zinc-500 max-w-[85%]">
                                 <MessageCircle className="w-4 h-4" />
                                 <Repeat2 className="w-4 h-4" />
@@ -58,7 +66,9 @@ const PostPreview: React.FC<{
                     <div className="px-3 pb-2 text-sm text-white/90 whitespace-pre-wrap">
                          {fullText || <span className="text-zinc-500 italic">Start writing...</span>}
                     </div>
-                    {image && (
+                    {video ? (
+                        <video src={video} controls className="w-full h-auto border-y border-zinc-800 object-cover max-h-80" />
+                    ) : image && (
                         <img src={image} className="w-full h-auto border-y border-zinc-800 object-cover max-h-80" alt="Preview" />
                     )}
                     <div className="p-2 flex justify-between border-t border-zinc-700 px-4">
@@ -94,10 +104,12 @@ const PostPreview: React.FC<{
                         <MoreHorizontal className="w-4 h-4" />
                     </div>
                     <div className="aspect-square bg-zinc-900 w-full flex items-center justify-center border-y border-zinc-800 overflow-hidden">
-                         {image ? (
+                         {video ? (
+                             <video src={video} controls className="w-full h-full object-cover" />
+                         ) : image ? (
                              <img src={image} className="w-full h-full object-cover" alt="Preview" />
                          ) : (
-                             <span className="text-zinc-700 text-xs uppercase font-mono">Image Preview</span>
+                             <span className="text-zinc-700 text-xs uppercase font-mono">Media Preview</span>
                          )}
                     </div>
                     <div className="p-3">
@@ -130,12 +142,17 @@ const PostPreview: React.FC<{
     );
 };
 
-export const SocialPlanner: React.FC = () => {
-    // Backend: Social Posts
+interface SocialPlannerProps {
+    tenantId: string;
+}
+
+export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
     const [posts, setPosts] = useLocalStorage<SocialPost[]>('social_posts', INITIAL_SOCIAL_POSTS);
     
     const [isCreating, setIsCreating] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
+    
+    const tenantPosts = posts.filter(p => p.tenantId === tenantId);
     
     // Calendar State
     const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
@@ -146,9 +163,13 @@ export const SocialPlanner: React.FC = () => {
     const [content, setContent] = useState('');
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [image, setImage] = useState<string | null>(null);
+    const [video, setVideo] = useState<string | null>(null);
     const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 16));
+    
     const [isGeneratingText, setIsGeneratingText] = useState(false);
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+    const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+    const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
 
     const handleGenerateContent = async () => {
         if (!topic) return;
@@ -163,18 +184,44 @@ export const SocialPlanner: React.FC = () => {
         if (!topic) return;
         setIsGeneratingImage(true);
         const result = await generateBrandAsset(`Social media image for: ${topic}. Style: Minimalist, modern, professional.`);
-        if (result) setImage(result);
+        if (result) {
+            setImage(result);
+            setVideo(null);
+        }
         setIsGeneratingImage(false);
+    };
+
+    const handleGenerateVideo = async () => {
+        if (!topic) return;
+        setIsGeneratingVideo(true);
+        const result = await generateSocialVideo(`Cinematic social media video about: ${topic}. Modern, clean, professional.`);
+        if (result) {
+            setVideo(result);
+            setImage(null);
+        }
+        setIsGeneratingVideo(false);
+    };
+
+    const handleAnalyzeImage = async () => {
+        if (!image || !topic) return;
+        setIsAnalyzingImage(true);
+        const caption = await analyzeImageForCaption(image, topic);
+        if (caption) {
+            setContent(caption);
+        }
+        setIsAnalyzingImage(false);
     };
 
     const handleSavePost = () => {
         if (!content) return;
         const newPost: SocialPost = {
             id: Date.now().toString(),
+            tenantId: tenantId,
             platform,
             content,
             hashtags,
             image: image || undefined,
+            video: video || undefined,
             scheduledDate: new Date(scheduledDate).toISOString(),
             status: 'scheduled'
         };
@@ -188,6 +235,7 @@ export const SocialPlanner: React.FC = () => {
         setContent('');
         setHashtags([]);
         setImage(null);
+        setVideo(null);
         setScheduledDate(new Date().toISOString().slice(0, 16));
     };
 
@@ -224,7 +272,7 @@ export const SocialPlanner: React.FC = () => {
 
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = new Date(year, month, day).toDateString();
-            const daysPosts = posts.filter(p => new Date(p.scheduledDate).toDateString() === dateStr);
+            const daysPosts = tenantPosts.filter(p => new Date(p.scheduledDate).toDateString() === dateStr);
             const isToday = new Date().toDateString() === dateStr;
 
             days.push(
@@ -328,7 +376,7 @@ export const SocialPlanner: React.FC = () => {
                             // LIST VIEW
                              <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                                 <h3 className="text-xs font-black text-zinc-500 uppercase tracking-wider mb-4">Upcoming Schedule</h3>
-                                {posts.sort((a,b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()).map(post => (
+                                {tenantPosts.sort((a,b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()).map(post => (
                                     <div key={post.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 hover:border-lime-400 transition-colors group flex gap-6 shadow-[4px_4px_0px_0px_#27272a]">
                                         {/* Date Badge */}
                                         <div className="flex flex-col items-center justify-center p-4 bg-zinc-950 border border-zinc-800 w-24 h-24 shrink-0">
@@ -354,10 +402,15 @@ export const SocialPlanner: React.FC = () => {
                                                     <ImageIcon className="w-3 h-3" /> Includes Image
                                                 </div>
                                             )}
+                                            {post.video && (
+                                                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase">
+                                                    <Video className="w-3 h-3" /> Includes Video
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
-                                {posts.length === 0 && (
+                                {tenantPosts.length === 0 && (
                                     <div className="p-12 text-center border-2 border-dashed border-zinc-800 text-zinc-500 font-mono uppercase">
                                         No upcoming posts scheduled.
                                     </div>
@@ -373,7 +426,7 @@ export const SocialPlanner: React.FC = () => {
                             <Eye className="w-4 h-4" /> Live Preview
                         </h3>
                         <div className="z-10 w-full flex justify-center">
-                            <PostPreview platform={platform} content={content} image={image} hashtags={hashtags} />
+                            <PostPreview platform={platform} content={content} image={image} video={video} hashtags={hashtags} />
                         </div>
                     </div>
                 )}
@@ -413,20 +466,28 @@ export const SocialPlanner: React.FC = () => {
                                         placeholder="What's this post about?"
                                         className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white text-sm focus:border-purple-400 focus:outline-none"
                                     />
-                                    <div className="flex gap-2">
+                                    <div className="grid grid-cols-2 gap-2">
                                         <button 
                                             onClick={handleGenerateContent}
                                             disabled={isGeneratingText || !topic}
-                                            className="flex-1 py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
+                                            className="py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
                                         >
                                             {isGeneratingText ? <Loader2 className="w-3 h-3 animate-spin" /> : "Write Caption"}
                                         </button>
                                         <button 
                                             onClick={handleGenerateImage}
                                             disabled={isGeneratingImage || !topic}
-                                            className="flex-1 py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
+                                            className="py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
                                         >
-                                            {isGeneratingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : "Create Image"}
+                                            {isGeneratingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : "Gen Image"}
+                                        </button>
+                                         <button 
+                                            onClick={handleGenerateVideo}
+                                            disabled={isGeneratingVideo || !topic}
+                                            className="col-span-2 py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            {isGeneratingVideo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Video className="w-3 h-3" />}
+                                            {isGeneratingVideo ? 'Creating Video...' : 'Gen Video (Veo)'}
                                         </button>
                                     </div>
                                 </div>
@@ -450,20 +511,36 @@ export const SocialPlanner: React.FC = () => {
 
                                 <div>
                                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Media</label>
-                                    {image ? (
+                                    {image || video ? (
                                         <div className="relative group/img">
-                                            <img src={image} alt="Post media" className="w-full rounded-sm border-2 border-zinc-800" />
-                                            <button 
-                                                onClick={() => setImage(null)} 
-                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {video ? (
+                                                <video src={video} controls className="w-full rounded-sm border-2 border-zinc-800" />
+                                            ) : image && (
+                                                <img src={image} alt="Post media" className="w-full rounded-sm border-2 border-zinc-800" />
+                                            )}
+                                            
+                                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                 {image && (
+                                                    <button 
+                                                        onClick={handleAnalyzeImage}
+                                                        className="p-1 bg-blue-500 text-white hover:bg-blue-400"
+                                                        title="AI Caption from Image"
+                                                    >
+                                                        {isAnalyzingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanEye className="w-4 h-4" />}
+                                                    </button>
+                                                 )}
+                                                <button 
+                                                    onClick={() => { setImage(null); setVideo(null); }}
+                                                    className="p-1 bg-red-500 text-white hover:bg-red-400"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="h-32 border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
                                             <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                                            <span className="text-[10px] uppercase">No Image Selected</span>
+                                            <span className="text-[10px] uppercase">No Media Selected</span>
                                         </div>
                                     )}
                                 </div>

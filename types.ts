@@ -1,6 +1,23 @@
 
 export type StageId = 'new' | 'contacted' | 'appointment' | 'negotiation' | 'closed';
 
+export type UserRole = 'agency_admin' | 'admin' | 'user';
+
+export interface Tenant {
+  id: string;
+  name: string;
+  type: 'agency' | 'sub_account';
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  tenantId: string;
+  avatar?: string;
+}
+
 export interface CustomField {
   id: string;
   label: string;
@@ -9,6 +26,7 @@ export interface CustomField {
 
 export interface Contact {
   id: string;
+  tenantId: string;
   name: string;
   company: string;
   email: string;
@@ -46,6 +64,7 @@ export interface FunnelElement {
 
 export interface Funnel {
   id: string;
+  tenantId: string;
   name: string;
   status: 'draft' | 'published';
   elements: FunnelElement[];
@@ -56,6 +75,7 @@ export interface Funnel {
 // Marketing Types
 export interface EmailCampaign {
   id: string;
+  tenantId: string;
   subject: string;
   status: 'draft' | 'scheduled' | 'sent';
   audience: string; // e.g. "All Contacts" or Tag
@@ -81,6 +101,7 @@ export interface EmailCampaign {
 
 export interface EmailTemplate {
   id: string;
+  tenantId?: string; // Optional for global templates
   name: string;
   subject: string;
   body: string; // HTML content
@@ -92,9 +113,11 @@ export type SocialPlatform = 'linkedin' | 'twitter' | 'instagram';
 
 export interface SocialPost {
     id: string;
+    tenantId: string;
     platform: SocialPlatform;
     content: string;
     image?: string;
+    video?: string; // URL/Base64 for video content
     hashtags: string[];
     scheduledDate: string; // ISO String
     status: 'draft' | 'scheduled' | 'published';
@@ -119,6 +142,7 @@ export interface KnowledgeSource {
 
 export interface AgentConfiguration {
   id: string;
+  tenantId: string;
   name: string;
   type: 'text' | 'voice';
   systemInstruction: string;
@@ -128,6 +152,18 @@ export interface AgentConfiguration {
   voiceName?: string; // For voice agents
   speakingRate?: number; // 0.5 to 2.0
   pitch?: number; // -20 to 20
+}
+
+export interface AgentSession {
+  id: string;
+  tenantId: string;
+  agentName: string;
+  type: 'text' | 'voice';
+  startTime: string; // ISO string
+  duration: number; // seconds
+  avgLatency?: number; // ms (text only)
+  rating?: number; // 1-5
+  status: 'completed' | 'aborted';
 }
 
 // Automation Types
@@ -202,6 +238,7 @@ export interface InboxMessage {
 
 export interface InboxThread {
   id: string;
+  tenantId: string;
   contactId: string;
   contactName: string;
   lastMessage: string;
@@ -214,6 +251,7 @@ export interface InboxThread {
 // Calendar / Scheduling Types
 export interface Appointment {
   id: string;
+  tenantId: string;
   title: string;
   contactId: string; // Link to CRM
   startTime: string; // ISO string

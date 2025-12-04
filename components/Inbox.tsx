@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { InboxThread, InboxMessage, MessageChannel } from '../types';
 import { INITIAL_THREADS } from '../constants';
@@ -6,9 +5,15 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { generateSmartReply, sendRealEmail } from '../services/geminiService';
 import { Search, Send, MessageSquare, Mail, MessageCircle, MoreVertical, Paperclip, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 
-export const Inbox: React.FC = () => {
+interface InboxProps {
+    tenantId: string;
+}
+
+export const Inbox: React.FC<InboxProps> = ({ tenantId }) => {
     const [threads, setThreads] = useLocalStorage<InboxThread[]>('inbox_threads', INITIAL_THREADS);
-    const [activeThreadId, setActiveThreadId] = useState<string | null>(INITIAL_THREADS[0].id);
+    const tenantThreads = threads.filter(t => t.tenantId === tenantId);
+
+    const [activeThreadId, setActiveThreadId] = useState<string | null>(tenantThreads.length > 0 ? tenantThreads[0].id : null);
     const [newMessage, setNewMessage] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSending, setIsSending] = useState(false);
@@ -30,18 +35,17 @@ export const Inbox: React.FC = () => {
         if (activeThread.messages[0].channel === 'email') {
             // In a real app we'd need the actual contact email, here we assume thread ID or mock
             // For demo, we'll try to send to a placeholder if contact doesn't have a real email in this view
-            const recipientEmail = "demo@example.com"; // Placeholder as InboxThread doesn't store email directly in this simplified schema
+            const recipientEmail = "demo@example.com"; 
             const subject = `Re: Conversation with ${activeThread.contactName}`;
             
-            const success = await sendRealEmail(recipientEmail, subject, newMessage);
-            if (!success) {
-                console.error("Failed to send real email via Pica.");
-                // We proceed to add to UI anyway for the demo continuity, but you might want to show an error toast
-            }
-        } else {
-            // Simulate delay for other channels
-            await new Promise(resolve => setTimeout(resolve, 600));
-        }
+            // Try to use real service, but don't block UI on it
+            sendRealEmail(recipientEmail, subject, newMessage).then(success => {
+                if (success) console.log("Real email sent via Pica");
+            });
+        } 
+
+        // Simulate network delay for UI consistency
+        await new Promise(resolve => setTimeout(resolve, 600));
 
         const msg: InboxMessage = {
             id: Date.now().toString(),
@@ -100,7 +104,7 @@ export const Inbox: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex-1 overflow-y-auto">
-                        {threads.map(thread => (
+                        {tenantThreads.map(thread => (
                             <div 
                                 key={thread.id}
                                 onClick={() => setActiveThreadId(thread.id)}

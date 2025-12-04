@@ -1,5 +1,18 @@
 
-import { Contact, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost, Appointment, InboxThread } from './types';
+import { Contact, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost, Appointment, InboxThread, Tenant, User } from './types';
+
+export const MOCK_TENANTS: Tenant[] = [
+  { id: 't1', name: 'HQ Agency', type: 'agency' },
+  { id: 't2', name: 'TechFlow Inc.', type: 'sub_account' },
+  { id: 't3', name: 'BuildRight LLC', type: 'sub_account' }
+];
+
+export const MOCK_USERS: User[] = [
+  { id: 'u1', name: 'Agency Admin', email: 'admin@agency.com', role: 'agency_admin', tenantId: 't1', avatar: 'https://i.pravatar.cc/150?u=1' },
+  { id: 'u2', name: 'TechFlow Admin', email: 'alice@techflow.com', role: 'admin', tenantId: 't2', avatar: 'https://i.pravatar.cc/150?u=2' },
+  { id: 'u3', name: 'TechFlow Staff', email: 'staff@techflow.com', role: 'user', tenantId: 't2', avatar: 'https://i.pravatar.cc/150?u=3' },
+  { id: 'u4', name: 'BuildRight Admin', email: 'bob@buildright.com', role: 'admin', tenantId: 't3', avatar: 'https://i.pravatar.cc/150?u=4' }
+];
 
 export const PIPELINE_STAGES: PipelineStage[] = [
   { id: 'new', title: 'New Leads', color: 'border-l-cyan-400' },
@@ -12,6 +25,7 @@ export const PIPELINE_STAGES: PipelineStage[] = [
 export const INITIAL_CONTACTS: Contact[] = [
   {
     id: '1',
+    tenantId: 't2',
     name: 'Alice Freeman',
     company: 'TechFlow Inc.',
     email: 'alice@techflow.com',
@@ -24,6 +38,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: '2',
+    tenantId: 't3',
     name: 'Bob Smith',
     company: 'BuildRight LLC',
     email: 'bob@buildright.com',
@@ -36,6 +51,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: '3',
+    tenantId: 't2',
     name: 'Charlie Davis',
     company: 'Davis Legal',
     email: 'charlie@davislegal.com',
@@ -48,6 +64,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: '4',
+    tenantId: 't2',
     name: 'Dana Lee',
     company: 'Creative Studios',
     email: 'dana@creativestudios.com',
@@ -63,6 +80,7 @@ export const INITIAL_CONTACTS: Contact[] = [
 export const INITIAL_FUNNELS: Funnel[] = [
   {
     id: 'f1',
+    tenantId: 't2',
     name: 'Webinar Registration',
     status: 'published',
     visits: 1240,
@@ -75,6 +93,7 @@ export const INITIAL_FUNNELS: Funnel[] = [
   },
   {
     id: 'f2',
+    tenantId: 't3',
     name: 'Consultation Booking',
     status: 'draft',
     visits: 0,
@@ -87,9 +106,74 @@ export const INITIAL_FUNNELS: Funnel[] = [
   }
 ];
 
+export const FUNNEL_TEMPLATES: Funnel[] = [
+  {
+    id: 'tpl_lead_magnet',
+    tenantId: 't1',
+    name: 'Simple Lead Magnet',
+    status: 'draft',
+    visits: 0,
+    conversions: 0,
+    elements: [
+       { id: 'e1', type: 'header', content: 'Free E-Book: The Solopreneur Guide' },
+       { id: 'e2', type: 'image', content: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=80' },
+       { id: 'e3', type: 'text', content: 'Download our comprehensive guide to scaling your one-person business.' },
+       { id: 'e4', type: 'form', content: 'Email Address' },
+       { id: 'e5', type: 'button', content: 'Get It Now' },
+    ]
+  },
+  {
+      id: 'tpl_webinar',
+      tenantId: 't1',
+      name: 'Webinar Registration',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Live Masterclass: AI Automation' },
+          { id: 'e2', type: 'text', content: 'Join us live to learn how to automate 80% of your work.' },
+          { id: 'e3', type: 'image', content: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=800&q=80' },
+          { id: 'e4', type: 'text', content: 'Limited spots available. Reserve yours today.' },
+          { id: 'e5', type: 'form', content: 'Enter your email' },
+          { id: 'e6', type: 'button', content: 'Register for Free' }
+      ]
+  },
+   {
+      id: 'tpl_booking',
+      tenantId: 't1',
+      name: 'Consultation Booking',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Book Your Strategy Call' },
+          { id: 'e2', type: 'text', content: 'Ready to take your business to the next level? Lets talk.' },
+          { id: 'e3', type: 'image', content: 'https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&q=80' },
+          { id: 'e4', type: 'button', content: 'Select a Time' }
+      ]
+  },
+  {
+      id: 'tpl_product',
+      tenantId: 't1',
+      name: 'Product Sales Page',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'The Ultimate AI Toolkit' },
+          { id: 'e2', type: 'image', content: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80' },
+          { id: 'e3', type: 'text', content: 'Everything you need to build, scale, and automate. One price.' },
+          { id: 'e4', type: 'header', content: '$97 - Limited Time' },
+          { id: 'e5', type: 'button', content: 'Buy Now' },
+          { id: 'e6', type: 'text', content: '"This toolkit changed my life." - Verified Customer' }
+      ]
+  }
+];
+
 export const INITIAL_CAMPAIGNS: EmailCampaign[] = [
   {
     id: 'c1',
+    tenantId: 't2',
     subject: 'March Newsletter: Top Trends',
     status: 'sent',
     audience: 'All Contacts',
@@ -98,6 +182,7 @@ export const INITIAL_CAMPAIGNS: EmailCampaign[] = [
   },
   {
     id: 'c2',
+    tenantId: 't2',
     subject: 'Exclusive Offer for Designers',
     status: 'draft',
     audience: 'Tag: design',
@@ -106,6 +191,7 @@ export const INITIAL_CAMPAIGNS: EmailCampaign[] = [
   },
   {
     id: 'c3',
+    tenantId: 't2',
     subject: 'A/B Test: New Service Launch',
     status: 'sent',
     audience: 'Tag: high-ticket',
@@ -124,6 +210,7 @@ export const INITIAL_CAMPAIGNS: EmailCampaign[] = [
 export const INITIAL_TEMPLATES: EmailTemplate[] = [
   {
     id: 't1',
+    tenantId: 't1',
     name: 'Welcome Series #1',
     subject: 'Welcome to the Solopreneur Club!',
     body: '<h1>Welcome Aboard!</h1><p>We are thrilled to have you here.</p><p>Here is what you can expect...</p>',
@@ -131,6 +218,7 @@ export const INITIAL_TEMPLATES: EmailTemplate[] = [
   },
   {
     id: 't2',
+    tenantId: 't2',
     name: 'Consultation Follow-up',
     subject: 'Great chatting with you today',
     body: '<p>Hi there,</p><p>It was great connecting earlier. As discussed, here are the next steps.</p><ul><li>Step 1</li><li>Step 2</li></ul>',
@@ -141,6 +229,7 @@ export const INITIAL_TEMPLATES: EmailTemplate[] = [
 export const INITIAL_SOCIAL_POSTS: SocialPost[] = [
     {
         id: '1',
+        tenantId: 't2',
         platform: 'linkedin',
         content: "Just launched my new agency! 🚀 It's been a wild ride but I'm excited to help small businesses grow. #entrepreneur #growth",
         hashtags: ['#entrepreneur', '#growth', '#agency'],
@@ -150,6 +239,7 @@ export const INITIAL_SOCIAL_POSTS: SocialPost[] = [
     },
     {
         id: '2',
+        tenantId: 't2',
         platform: 'twitter',
         content: "Pro tip: Automation isn't about being lazy, it's about being efficient. What are you automating today?",
         hashtags: ['#automation', '#productivity'],
@@ -161,6 +251,7 @@ export const INITIAL_SOCIAL_POSTS: SocialPost[] = [
 export const INITIAL_AGENT_CONFIGS: AgentConfiguration[] = [
   {
     id: '1',
+    tenantId: 't2',
     name: 'Basic Support',
     type: 'text',
     systemInstruction: 'You are a helpful customer support assistant for a digital marketing agency called "The Solopreneur". Be concise, professional, and friendly.',
@@ -170,6 +261,7 @@ export const INITIAL_AGENT_CONFIGS: AgentConfiguration[] = [
   },
   {
     id: '2',
+    tenantId: 't2',
     name: 'Sales Coach (Aggressive)',
     type: 'voice',
     systemInstruction: 'You are an aggressive sales coach helping the user practice objection handling. Challenge the user constantly. Do not be polite.',
@@ -181,6 +273,7 @@ export const INITIAL_AGENT_CONFIGS: AgentConfiguration[] = [
   },
   {
     id: '3',
+    tenantId: 't3',
     name: 'Tech Troubleshooter',
     type: 'text',
     systemInstruction: 'You are a technical support engineer. Focus on solving software issues with step-by-step instructions. Ask clarifying questions.',
@@ -190,6 +283,7 @@ export const INITIAL_AGENT_CONFIGS: AgentConfiguration[] = [
   },
   {
     id: '4',
+    tenantId: 't2',
     name: 'Empathetic Listener',
     type: 'voice',
     systemInstruction: 'You are an empathetic listener. Use a soothing tone and validate the users feelings. Keep responses short and encouraging.',
@@ -266,6 +360,7 @@ export const SDR_KNOWLEDGE_BASE = `
 export const INITIAL_APPOINTMENTS: Appointment[] = [
     {
         id: 'a1',
+        tenantId: 't2',
         title: 'Strategy Call - Alice Freeman',
         contactId: '1',
         startTime: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
@@ -275,6 +370,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
     },
     {
         id: 'a2',
+        tenantId: 't3',
         title: 'Demo - Bob Smith',
         contactId: '2',
         startTime: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
@@ -287,6 +383,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
 export const INITIAL_THREADS: InboxThread[] = [
     {
         id: 'th1',
+        tenantId: 't2',
         contactId: '1',
         contactName: 'Alice Freeman',
         lastMessage: 'Sounds good, see you then!',
@@ -299,6 +396,7 @@ export const INITIAL_THREADS: InboxThread[] = [
     },
     {
         id: 'th2',
+        tenantId: 't3',
         contactId: '2',
         contactName: 'Bob Smith',
         lastMessage: 'Can you send the proposal?',

@@ -7,11 +7,14 @@ import { generateLeads } from '../services/geminiService';
 interface PipelineProps {
   contacts: Contact[];
   setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+  tenantId: string;
 }
 
-export const Pipeline: React.FC<PipelineProps> = ({ contacts, setContacts }) => {
+export const Pipeline: React.FC<PipelineProps> = ({ contacts, setContacts, tenantId }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [draggedContactId, setDraggedContactId] = useState<string | null>(null);
+
+  const tenantContacts = contacts.filter(c => c.tenantId === tenantId);
 
   const handleDragStart = (e: React.DragEvent, contactId: string) => {
     setDraggedContactId(contactId);
@@ -38,12 +41,13 @@ export const Pipeline: React.FC<PipelineProps> = ({ contacts, setContacts }) => 
     setIsGenerating(true);
     const newLeads = await generateLeads(3);
     if (newLeads.length > 0) {
-      setContacts((prev) => [...prev, ...newLeads]);
+      const leadsWithTenant = newLeads.map(l => ({ ...l, tenantId }));
+      setContacts((prev) => [...prev, ...leadsWithTenant]);
     }
     setIsGenerating(false);
   };
 
-  const getContactsByStage = (stage: StageId) => contacts.filter((c) => c.stage === stage);
+  const getContactsByStage = (stage: StageId) => tenantContacts.filter((c) => c.stage === stage);
 
   return (
     <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500">

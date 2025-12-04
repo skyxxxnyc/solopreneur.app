@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Appointment } from '../types';
 import { INITIAL_APPOINTMENTS, INITIAL_CONTACTS } from '../constants';
@@ -6,11 +5,17 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { ChevronLeft, ChevronRight, Plus, Clock, Video, User, Loader2 } from 'lucide-react';
 import { scheduleMeeting } from '../services/geminiService';
 
-export const Calendar: React.FC = () => {
+interface CalendarProps {
+    tenantId: string;
+}
+
+export const Calendar: React.FC<CalendarProps> = ({ tenantId }) => {
     const [appointments, setAppointments] = useLocalStorage<Appointment[]>('calendar_appointments', INITIAL_APPOINTMENTS);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isBooking, setIsBooking] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const tenantAppointments = appointments.filter(a => a.tenantId === tenantId);
 
     // Form State
     const [title, setTitle] = useState('');
@@ -45,6 +50,7 @@ export const Calendar: React.FC = () => {
 
         const newAppt: Appointment = {
             id: Date.now().toString(),
+            tenantId: tenantId,
             title,
             contactId: selectedContact,
             startTime: start.toISOString(),
@@ -62,7 +68,7 @@ export const Calendar: React.FC = () => {
     };
 
     const getAppointmentsForSlot = (day: Date, hour: number) => {
-        return appointments.filter(a => {
+        return tenantAppointments.filter(a => {
             const start = new Date(a.startTime);
             return start.getDate() === day.getDate() && 
                    start.getMonth() === day.getMonth() && 

@@ -1,15 +1,14 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { EmailCampaign, Contact, EmailTemplate } from '../types';
-import { Send, Plus, BarChart3, Mail, Users, CheckCircle, Clock, Wand2, Loader2, LayoutTemplate, FileText, Bold, Italic, Underline, List, Heading1, AlignLeft, Type, Trash2, Edit, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Link, Split, Trophy, Beaker } from 'lucide-react';
-import { generateMarketingCampaign } from '../services/geminiService';
+import { Send, Plus, BarChart3, Mail, Users, CheckCircle, Clock, Wand2, Loader2, LayoutTemplate, FileText, Bold, Italic, Underline, List, Heading1, AlignLeft, Type, Trash2, Edit, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, Link, Split, Trophy, Beaker, Volume2 } from 'lucide-react';
+import { generateMarketingCampaign, generateMarketingSpeech } from '../services/geminiService';
 import { INITIAL_TEMPLATES } from '../constants';
 
 interface MarketingProps {
   campaigns: EmailCampaign[];
   setCampaigns: React.Dispatch<React.SetStateAction<EmailCampaign[]>>;
   contacts: Contact[];
+  tenantId: string;
 }
 
 const RichTextEditor: React.FC<{ 
@@ -56,7 +55,7 @@ const RichTextEditor: React.FC<{
                 ref={editorRef}
                 contentEditable
                 onInput={handleInput}
-                className="flex-1 min-h-[300px] p-4 text-zinc-300 font-mono text-sm leading-relaxed focus:outline-none focus:bg-zinc-900/30 transition-colors overflow-y-auto"
+                className="flex-1 min-h-[300px] p-4 text-zinc-300 font-mono text-sm leading-relaxed focus:outline-none focus:bg-zinc-900/30 transition-colors overflow-y-auto [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2"
             />
             {(!value && placeholder) && (
                 <div className="absolute top-[130px] left-8 pointer-events-none text-zinc-600 font-mono text-sm italic">
@@ -172,7 +171,7 @@ const CalendarInput: React.FC<{
     );
 };
 
-export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, contacts }) => {
+export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, contacts, tenantId }) => {
   const [activeTab, setActiveTab] = useState<'campaigns' | 'templates'>('campaigns');
   
   // Campaign State
@@ -198,6 +197,10 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
   const [audienceCount, setAudienceCount] = useState<number | null>(null);
   const [isSyncingAudience, setIsSyncingAudience] = useState(false);
 
+  // TTS State
+  const [isReading, setIsReading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   // Template State
   const [templates, setTemplates] = useState<EmailTemplate[]>(INITIAL_TEMPLATES);
   const [isEditingTemplate, setIsEditingTemplate] = useState(false);
@@ -209,6 +212,9 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
   const [templateAiTone, setTemplateAiTone] = useState('Professional & Direct');
   const [isTemplateGenerating, setIsTemplateGenerating] = useState(false);
 
+  const tenantCampaigns = campaigns.filter(c => c.tenantId === tenantId);
+  const tenantTemplates = templates.filter(t => t.tenantId === tenantId || !t.tenantId);
+
   // --- Actions ---
 
   const handleCreateCampaign = () => {
@@ -216,6 +222,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
 
     const newCampaign: EmailCampaign = {
         id: Date.now().toString(),
+        tenantId: tenantId,
         subject: subject || 'New Campaign',
         status: isNow ? 'sent' : 'scheduled',
         audience,
@@ -282,6 +289,28 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
       setIsGenerating(false);
   };
 
+  const handleReadDraft = async () => {
+      if (isReading) {
+          audioRef.current?.pause();
+          setIsReading(false);
+          return;
+      }
+
+      const textToRead = (activeVariant === 'A' ? body : bodyB).replace(/<[^>]*>/g, '');
+      if (!textToRead) return;
+
+      setIsReading(true);
+      const audioUrl = await generateMarketingSpeech(textToRead);
+      if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          audio.onended = () => setIsReading(false);
+          audio.play();
+      } else {
+          setIsReading(false);
+      }
+  };
+
   const handleSyncAudience = () => {
       setIsSyncingAudience(true);
       setAudienceCount(null);
@@ -315,6 +344,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
 
       const newTemplate: EmailTemplate = {
           id: editingTemplateId || Date.now().toString(),
+          tenantId: tenantId,
           name: templateName,
           subject: templateSubject,
           body: templateBody,
@@ -443,7 +473,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
                                 defaultValue=""
                             >
                                 <option value="" disabled>Select a template...</option>
-                                {templates.map(t => (
+                                {tenantTemplates.map(t => (
                                     <option key={t.id} value={t.id}>{t.name}</option>
                                 ))}
                             </select>
@@ -481,7 +511,16 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Email Body {isABTestMode && `(${activeVariant})`}</label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-bold text-zinc-500 uppercase">Email Body {isABTestMode && `(${activeVariant})`}</label>
+                                <button 
+                                    onClick={handleReadDraft} 
+                                    className={`flex items-center gap-1 text-[10px] font-bold uppercase transition-colors ${isReading ? 'text-lime-400' : 'text-zinc-500 hover:text-white'}`}
+                                >
+                                    {isReading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Volume2 className="w-3 h-3" />}
+                                    {isReading ? 'Reading...' : 'Listen to Draft'}
+                                </button>
+                            </div>
                             <RichTextEditor 
                                 value={activeVariant === 'A' ? body : bodyB}
                                 onChange={(val) => activeVariant === 'A' ? setBody(val) : setBodyB(val)}
@@ -690,8 +729,8 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
         {activeTab === 'campaigns' ? (
             // CAMPAIGN LIST
             <>
-                {campaigns.length === 0 && <div className="text-center text-zinc-500 mt-10 font-mono">No campaigns yet. Start one!</div>}
-                {campaigns.map((campaign) => (
+                {tenantCampaigns.length === 0 && <div className="text-center text-zinc-500 mt-10 font-mono">No campaigns yet. Start one!</div>}
+                {tenantCampaigns.map((campaign) => (
                     <div key={campaign.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a] hover:border-zinc-600 transition-colors group">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                             <div>
@@ -779,7 +818,7 @@ export const Marketing: React.FC<MarketingProps> = ({ campaigns, setCampaigns, c
         ) : (
             // TEMPLATE LIST
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {templates.map(template => (
+                {tenantTemplates.map(template => (
                     <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a] hover:border-zinc-600 transition-colors flex flex-col h-64 group relative">
                          <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                              <button onClick={() => handleEditTemplate(template)} className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white"><Edit className="w-4 h-4" /></button>

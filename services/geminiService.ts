@@ -1,48 +1,55 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Contact, StageId, WorkflowNode, Prospect, EnrichedProfile, InboxThread } from "../types";
 import { SDR_KNOWLEDGE_BASE } from "../constants";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// --- PICA OS HELPERS ---
-
-const picaFetch = async (endpoint: string, connectionKey: string | undefined, actionId: string, body: any) => {
-    if (!process.env.PICA_SECRET_KEY || !connectionKey) {
-        console.warn(`Missing keys for Pica endpoint: ${endpoint}. Ensure PICA_SECRET_KEY and connection keys are set.`);
-        return null;
-    }
-
-    try {
-        const url = endpoint.startsWith('http') ? endpoint : `https://api.picaos.com/v1/passthrough/${endpoint}`;
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'x-pica-secret': process.env.PICA_SECRET_KEY,
-                'x-pica-connection-key': connectionKey,
-                'x-pica-action-id': actionId,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-
-        if (!response.ok) {
-            console.error(`Pica API Error ${response.status}:`, await response.text());
-            return null;
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error("Pica Network Error:", error);
-        return null;
-    }
-};
+// --- UTILS ---
 
 const base64UrlEncode = (str: string) => {
     return btoa(unescape(encodeURIComponent(str)))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
+};
+
+const decodeAudioData = async (base64Audio: string, audioContext: AudioContext) => {
+    const binaryString = atob(base64Audio);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return await audioContext.decodeAudioData(bytes.buffer);
+};
+
+const cleanJson = (text: string) => {
+    let cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const startBrace = cleaned.indexOf('{');
+    const startBracket = cleaned.indexOf('[');
+    
+    // Simple heuristic to find start of JSON
+    if (startBrace !== -1 && (startBracket === -1 || startBrace < startBracket)) {
+        const endBrace = cleaned.lastIndexOf('}');
+        if (endBrace !== -1) cleaned = cleaned.substring(startBrace, endBrace + 1);
+    } else if (startBracket !== -1) {
+        const endBracket = cleaned.lastIndexOf(']');
+        if (endBracket !== -1) cleaned = cleaned.substring(startBracket, endBracket + 1);
+    }
+    return cleaned;
+};
+
+// --- PICA OS HELPERS ---
+
+const PICA_BASE_URL = 'https://api.picaos.com/v1/passthrough';
+
+const getPicaHeaders = (connectionKeyEnv: string, actionId: string) => {
+    return {
+        'x-pica-secret': process.env.PICA_SECRET_KEY || '',
+        'x-pica-connection-key': process.env[connectionKeyEnv] || '',
+        'x-pica-action-id': actionId,
+        'Content-Type': 'application/json'
+    };
 };
 
 // --- CORE GENERATION (Gemini) ---
@@ -74,7 +81,8 @@ export const generateLeads = async (count: number = 3): Promise<Contact[]> => {
       },
     });
 
-    const rawLeads = JSON.parse(response.text || "[]");
+    const jsonStr = cleanJson(response.text || "[]");
+    const rawLeads = JSON.parse(jsonStr);
 
     return rawLeads.map((lead: any, index: number) => ({
       ...lead,
@@ -125,7 +133,8 @@ export const generateMarketingCampaign = async (prompt: string, tone: string = '
       },
     });
 
-    return JSON.parse(response.text || '{"subject": "", "body": ""}');
+    const jsonStr = cleanJson(response.text || '{"subject": "", "body": ""}');
+    return JSON.parse(jsonStr);
   } catch (error) {
     console.error("Campaign gen error:", error);
     return { subject: "Error Generating", body: "Please try again." };
@@ -138,6 +147,11 @@ export const generateBrandAsset = async (prompt: string): Promise<string | null>
             model: 'gemini-2.5-flash-image',
             contents: {
                 parts: [{ text: prompt }]
+            },
+            config: {
+                imageConfig: {
+                    aspectRatio: "1:1"
+                }
             }
         });
 
@@ -149,6 +163,94 @@ export const generateBrandAsset = async (prompt: string): Promise<string | null>
         return null;
     } catch (error) {
         console.error("Failed to generate image:", error);
+        return null;
+    }
+}
+
+export const generateSocialVideo = async (prompt: string): Promise<string | null> => {
+    try {
+        // Veo Video Generation
+        let operation = await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt: prompt,
+            config: {
+                numberOfVideos: 1,
+                resolution: '1080p',
+                aspectRatio: '16:9'
+            }
+        });
+
+        // Polling
+        while (!operation.done) {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            operation = await ai.operations.getVideosOperation({ operation: operation });
+        }
+
+        const videoUri = operation.response?.generatedVideos?.[0]?.video?.uri;
+        if (videoUri) {
+            // Fetch the actual bytes using the API key
+            const res = await fetch(`${videoUri}&key=${process.env.API_KEY}`);
+            const blob = await res.blob();
+            return URL.createObjectURL(blob);
+        }
+        return null;
+    } catch (error) {
+        console.error("Video generation failed:", error);
+        return null;
+    }
+};
+
+export const analyzeImageForCaption = async (base64Data: string, topic: string): Promise<string> => {
+    try {
+        const mimeType = base64Data.split(';')[0].split(':')[1];
+        const data = base64Data.split(',')[1];
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    {
+                        inlineData: {
+                            mimeType: mimeType,
+                            data: data
+                        }
+                    },
+                    {
+                        text: `Write a social media caption about "${topic}" for this image. 
+                               Include 3 relevant hashtags. Tone: Professional and engaging.`
+                    }
+                ]
+            }
+        });
+        return response.text || "";
+    } catch (error) {
+        console.error("Image analysis failed:", error);
+        return "";
+    }
+}
+
+export const generateMarketingSpeech = async (text: string): Promise<string | null> => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash-preview-tts",
+            contents: [{ parts: [{ text: text }] }],
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: {
+                        prebuiltVoiceConfig: { voiceName: 'Kore' },
+                    },
+                },
+            },
+        });
+        
+        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        if (base64Audio) {
+            return `data:audio/mp3;base64,${base64Audio}`; 
+        }
+        return null;
+    } catch (error) {
+        console.error("TTS failed:", error);
         return null;
     }
 }
@@ -180,7 +282,8 @@ export const generateWorkflow = async (prompt: string): Promise<WorkflowNode[]> 
             }
         });
         
-        return JSON.parse(response.text || "[]");
+        const jsonStr = cleanJson(response.text || "[]");
+        return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Workflow gen error:", error);
         return [];
@@ -207,7 +310,8 @@ export const generateSocialPost = async (topic: string, platform: string): Promi
                 }
             }
         });
-        return JSON.parse(response.text || '{"content": "", "hashtags": []}');
+        const jsonStr = cleanJson(response.text || '{"content": "", "hashtags": []}');
+        return JSON.parse(jsonStr);
     } catch (error) {
         console.error("Social post gen error:", error);
         return { content: "Error generating content", hashtags: [] };
@@ -230,179 +334,173 @@ export const generateSmartReply = async (thread: InboxThread): Promise<string> =
     }
 }
 
-// --- SDR & OUTREACH (Real Perplexity Integration via Pica) ---
+// --- SDR & OUTREACH (Real via Pica + Perplexity) ---
 
 export const findProspects = async (niche: string, location: string): Promise<Prospect[]> => {
-    console.log("Using Real SDR Agent (Perplexity via Pica)");
+    console.log("Using SDR Agent with Pica (Perplexity)");
     
-    // Fallback to Gemini if Pica keys are missing
     if (!process.env.PICA_PERPLEXITY_CONNECTION_KEY) {
-        console.warn("PICA_PERPLEXITY_CONNECTION_KEY not found. Falling back to Gemini Mock.");
-        // Re-using old Gemini logic as fallback
+        console.warn("PICA_PERPLEXITY_CONNECTION_KEY not set. Falling back to Gemini mock.");
+        // Fallback for when Pica keys aren't set
         try {
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: `Find 5 ${niche} businesses in ${location}. Return JSON array with: name, address, rating, website, reviewCount, analysis, leadScore, painPoints, suggestedOutreach.`,
+                contents: `Find 5 ${niche} businesses in ${location}. 
+                Return JSON with fields: name, address, rating, website, reviewCount.
+                Use Maps tool if available.`,
                 config: { tools: [{ googleMaps: {} }] }
             });
-            let jsonStr = response.text || "[]";
-            jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
-            const rawData = JSON.parse(jsonStr);
-            return rawData.map((item: any, idx: number) => ({ ...item, id: `prospect-${Date.now()}-${idx}`, status: 'found' }));
+            let jsonStr = cleanJson(response.text || "[]");
+            return JSON.parse(jsonStr).map((item: any, idx: number) => ({
+                 ...item, id: `prospect-${Date.now()}-${idx}`, status: 'found',
+                 leadScore: 85, painPoints: ['Manual Processes']
+            }));
         } catch (e) { return []; }
     }
 
-    const prompt = `Research and find 5 specific ${niche} businesses in ${location}.
-    
-    Use the following KNOWLEDGE BASE for analysis:
-    ${SDR_KNOWLEDGE_BASE}
+    try {
+        const prompt = `Find 5 ${niche} businesses in ${location}. 
+        For each, provide: name, address, rating (number), website, and reviewCount (number).
+        Also calculate a 'leadScore' (0-100) based on how likely they need digital marketing (lower rating = higher score).
+        Identify one specific 'painPoints' string based on reviews.
+        
+        KNOWLEDGE BASE for scoring:
+        ${SDR_KNOWLEDGE_BASE}
+        
+        Return ONLY valid JSON array. No markdown.`;
 
-    RETURN ONLY A VALID JSON ARRAY. No markdown, no intro.
-    Each object must have:
-    - name (string)
-    - address (string)
-    - rating (number, estimate if needed)
-    - website (string or empty)
-    - reviewCount (number)
-    - analysis (string: why this lead fits based on KB)
-    - leadScore (number: 0-100)
-    - painPoints (array of strings)
-    - suggestedOutreach (string: 1 sentence hook)
-    `;
+        const response = await fetch(`${PICA_BASE_URL}/chat/completions`, {
+            method: 'POST',
+            headers: getPicaHeaders('PICA_PERPLEXITY_CONNECTION_KEY', 'conn_mod_def::GCY0iK-iGks::TKAh9sv2Ts2HJdLJc5a60A'),
+            body: JSON.stringify({
+                model: 'sonar',
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
 
-    const result = await picaFetch(
-        'chat/completions',
-        process.env.PICA_PERPLEXITY_CONNECTION_KEY,
-        'conn_mod_def::GCY0iK-iGks::TKAh9sv2Ts2HJdLJc5a60A',
-        {
-            model: 'sonar',
-            messages: [{ role: 'user', content: prompt }]
-        }
-    );
+        const data = await response.json();
+        const jsonStr = cleanJson(data.choices?.[0]?.message?.content || "[]");
+        const rawData = JSON.parse(jsonStr);
+        
+        return rawData.map((item: any, idx: number) => ({
+             ...item, 
+             id: `prospect-${Date.now()}-${idx}`, 
+             status: 'found',
+             painPoints: item.painPoints ? [item.painPoints] : []
+        }));
 
-    if (result && result.choices && result.choices[0]?.message?.content) {
-        try {
-            let content = result.choices[0].message.content;
-            // Clean markdown
-            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-            const data = JSON.parse(content);
-            return data.map((item: any, idx: number) => ({
-                ...item,
-                id: `prospect-${Date.now()}-${idx}`,
-                status: 'found'
-            }));
-        } catch (e) {
-            console.error("Failed to parse Perplexity JSON", e);
-            return [];
-        }
+    } catch (e) { 
+        console.error("SDR Agent Error:", e);
+        return []; 
     }
-    return [];
 }
 
 export const findDecisionMaker = async (company: string, location: string): Promise<EnrichedProfile | null> => {
-    console.log("Using Real Outreach Agent (Perplexity via Pica)");
+    console.log("Using Outreach Agent with Pica (Perplexity)");
 
-    // Fallback
     if (!process.env.PICA_PERPLEXITY_CONNECTION_KEY) {
+        console.warn("PICA_PERPLEXITY_CONNECTION_KEY not set. Mocking.");
+        // Mock fallback
         return {
             company,
-            decisionMaker: "Unknown (Missing API Key)",
-            title: "N/A",
-            contactInfo: "None",
-            sources: [],
-            confidence: "Low",
-            notes: "Please configure PICA_PERPLEXITY_CONNECTION_KEY."
+            decisionMaker: "John Doe",
+            title: "Owner",
+            contactInfo: "john@example.com",
+            sources: ["https://linkedin.com/mock"],
+            confidence: "Medium",
+            notes: "Mock data fallback."
         };
     }
 
-    const prompt = `Find the Owner, Founder, or CEO of "${company}" in "${location}".
-    Search for public email addresses or phone numbers associated with the business or owner.
-    
-    RETURN ONLY A VALID JSON OBJECT. No markdown.
-    Fields:
-    - decisionMaker (string: Name or "Unknown")
-    - title (string)
-    - contactInfo (string: Found email/phone or "None")
-    - sources (array of strings: URLs)
-    - confidence (string: "High", "Medium", "Low")
-    - notes (string: e.g. "Found LinkedIn profile" or "Mentioned on website")
-    `;
+    try {
+        const prompt = `Research the business "${company}" in "${location}".
+        Find the Owner, Founder, or CEO.
+        Find public email addresses or phone numbers.
+        
+        Return ONLY a valid JSON object.
+        Fields:
+        - decisionMaker (string: Name or "Unknown")
+        - title (string)
+        - contactInfo (string: Found email/phone or "None")
+        - sources (array of strings: URLs found)
+        - confidence (string: "High", "Medium", "Low")
+        - notes (string: e.g. "Found LinkedIn profile")`;
 
-    const result = await picaFetch(
-        'chat/completions',
-        process.env.PICA_PERPLEXITY_CONNECTION_KEY,
-        'conn_mod_def::GCY0iK-iGks::TKAh9sv2Ts2HJdLJc5a60A',
-        {
-            model: 'sonar',
-            messages: [{ role: 'user', content: prompt }]
-        }
-    );
+        const response = await fetch(`${PICA_BASE_URL}/chat/completions`, {
+            method: 'POST',
+            headers: getPicaHeaders('PICA_PERPLEXITY_CONNECTION_KEY', 'conn_mod_def::GCY0iK-iGks::TKAh9sv2Ts2HJdLJc5a60A'),
+            body: JSON.stringify({
+                model: 'sonar',
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
 
-    if (result && result.choices && result.choices[0]?.message?.content) {
-        try {
-            let content = result.choices[0].message.content;
-            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-            // Handle cases where AI adds extra text before/after JSON
-            const start = content.indexOf('{');
-            const end = content.lastIndexOf('}');
-            if (start !== -1 && end !== -1) {
-                content = content.substring(start, end + 1);
-            }
-            const data = JSON.parse(content);
-            return { ...data, company };
-        } catch (e) {
-            console.error("Failed to parse Perplexity JSON for Decision Maker", e);
-            return null;
-        }
+        const data = await response.json();
+        const jsonStr = cleanJson(data.choices?.[0]?.message?.content || "{}");
+        const parsed = JSON.parse(jsonStr);
+        return { ...parsed, company };
+
+    } catch (e) {
+        console.error("Outreach Agent Error:", e);
+        return null;
     }
-    return null;
 }
 
-// --- REAL INTEGRATIONS (Gmail & Calendar via Pica) ---
+// --- REAL INTEGRATIONS (Pica OS) ---
 
 export const sendRealEmail = async (to: string, subject: string, body: string): Promise<boolean> => {
+    console.log(`Sending Email via Pica to ${to}`);
+
     if (!process.env.PICA_GMAIL_CONNECTION_KEY) {
-        console.warn("PICA_GMAIL_CONNECTION_KEY missing. Simulating send.");
-        return new Promise(r => setTimeout(() => r(true), 1000));
+        console.warn("PICA_GMAIL_CONNECTION_KEY not set.");
+        return false;
     }
 
-    // Construct MIME message
-    const mime = [
-        `To: ${to}`,
-        `Subject: ${subject}`,
-        `Content-Type: text/plain; charset=UTF-8`,
-        ``,
-        body
-    ].join('\n');
+    try {
+        const mimeMessage = `To: ${to}\nSubject: ${subject}\nContent-Type: text/plain; charset=UTF-8\n\n${body}`;
+        const raw = base64UrlEncode(mimeMessage);
 
-    const raw = base64UrlEncode(mime);
+        const response = await fetch(`${PICA_BASE_URL}/users/me/messages/send`, {
+            method: 'POST',
+            headers: getPicaHeaders('PICA_GMAIL_CONNECTION_KEY', 'conn_mod_def::F_JeJ_A_TKg::cc2kvVQQTiiIiLEDauy6zQ'),
+            body: JSON.stringify({ raw })
+        });
 
-    const result = await picaFetch(
-        'users/me/messages/send',
-        process.env.PICA_GMAIL_CONNECTION_KEY,
-        'conn_mod_def::F_JeJ_A_TKg::cc2kvVQQTiiIiLEDauy6zQ',
-        { raw }
-    );
-
-    return !!result?.id;
+        if (!response.ok) {
+            console.error("Gmail send failed", await response.text());
+            return false;
+        }
+        return true;
+    } catch (e) {
+        console.error("Gmail Error:", e);
+        return false;
+    }
 };
 
 export const scheduleMeeting = async (title: string, date: string, time: string): Promise<boolean> => {
+    console.log(`Scheduling Meeting via Pica: ${title}`);
+
     if (!process.env.PICA_GOOGLE_CALENDAR_CONNECTION_KEY) {
-        console.warn("PICA_GOOGLE_CALENDAR_CONNECTION_KEY missing. Simulating schedule.");
-        return new Promise(r => setTimeout(() => r(true), 1000));
+         console.warn("PICA_GOOGLE_CALENDAR_CONNECTION_KEY not set.");
+         return false;
     }
 
-    const text = `${title} on ${date} at ${time}`;
-    const encodedText = encodeURIComponent(text);
-    
-    // QuickAdd endpoint accepts text param
-    const result = await picaFetch(
-        `calendars/primary/events/quickAdd?text=${encodedText}`,
-        process.env.PICA_GOOGLE_CALENDAR_CONNECTION_KEY,
-        'conn_mod_def::F_Jd9lD1m3Y::XwU7qyzzQJSb6VGapt1tcQ',
-        {} // Body must be empty object
-    );
+    try {
+        // Using QuickAdd for natural language parsing as it's often more robust for simple inputs
+        const text = encodeURIComponent(`${title} on ${date} at ${time}`);
+        const response = await fetch(`${PICA_BASE_URL}/calendars/primary/events/quickAdd?text=${text}`, {
+            method: 'POST',
+            headers: getPicaHeaders('PICA_GOOGLE_CALENDAR_CONNECTION_KEY', 'conn_mod_def::F_Jd9lD1m3Y::XwU7qyzzQJSb6VGapt1tcQ'),
+            body: JSON.stringify({})
+        });
 
-    return !!result?.id;
+        if (!response.ok) {
+            console.error("Calendar add failed", await response.text());
+            return false;
+        }
+        return true;
+    } catch (e) {
+        console.error("Calendar Error:", e);
+        return false;
+    }
 };

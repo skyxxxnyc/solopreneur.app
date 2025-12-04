@@ -1,23 +1,10 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, Chat } from '@google/genai';
 import { Bot, Mic, Square, Send, MessageSquare, Mic2, Settings2, Trash2, Save, ChevronDown, Activity, Clock, Heart, BarChart3, TrendingUp, RefreshCw, Link, FileText, Upload, AlertCircle, Star, X, CheckCircle2, Plus, Volume2, Gauge } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { ChatMessage, AgentConfiguration, KnowledgeSource } from '../types';
+import { ChatMessage, AgentConfiguration, KnowledgeSource, AgentSession } from '../types';
 import { INITIAL_AGENT_CONFIGS } from '../constants';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-
-// --- TYPES ---
-export interface AgentSession {
-  id: string;
-  agentName: string;
-  type: 'text' | 'voice';
-  startTime: string; // ISO string
-  duration: number; // seconds
-  avgLatency?: number; // ms (text only)
-  rating?: number; // 1-5
-  status: 'completed' | 'aborted';
-}
 
 // --- UTILS ---
 function decode(base64: string) {
@@ -120,11 +107,14 @@ const ConfigManager: React.FC<{
     activeConfigId: string | null;
     setActiveConfigId: (id: string | null) => void;
     agentName: string;
-}> = ({ savedConfigs, setSavedConfigs, onLoad, currentConfigData, type, activeConfigId, setActiveConfigId, agentName }) => {
+    tenantId: string;
+}> = ({ savedConfigs, setSavedConfigs, onLoad, currentConfigData, type, activeConfigId, setActiveConfigId, agentName, tenantId }) => {
     const [newConfigName, setNewConfigName] = useState('');
     const [isExpanded, setIsExpanded] = useState(true);
 
     const activeConfig = savedConfigs.find(c => c.id === activeConfigId);
+    // Filter configs by tenantId
+    const filteredConfigs = savedConfigs.filter(c => c.type === type && c.tenantId === tenantId);
 
     const handleSaveNew = () => {
         if (!newConfigName) return;
@@ -154,8 +144,6 @@ const ConfigManager: React.FC<{
             if (activeConfigId === id) setActiveConfigId(null);
         }
     };
-
-    const filteredConfigs = savedConfigs.filter(c => c.type === type);
 
     return (
         <div className="border-b-2 border-zinc-800 pb-4 mb-6">
@@ -495,7 +483,8 @@ const TextAgentBuilder: React.FC<{
     savedConfigs: AgentConfiguration[];
     setSavedConfigs: React.Dispatch<React.SetStateAction<AgentConfiguration[]>>;
     onSessionComplete: (session: AgentSession) => void;
-}> = ({ savedConfigs, setSavedConfigs, onSessionComplete }) => {
+    tenantId: string;
+}> = ({ savedConfigs, setSavedConfigs, onSessionComplete, tenantId }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -586,6 +575,7 @@ const TextAgentBuilder: React.FC<{
         
         const session: AgentSession = {
             id: sessionId,
+            tenantId: tenantId,
             agentName,
             type: 'text',
             startTime: new Date(startTime).toISOString(),
@@ -611,11 +601,12 @@ const TextAgentBuilder: React.FC<{
                     savedConfigs={savedConfigs} 
                     setSavedConfigs={setSavedConfigs} 
                     onLoad={loadConfig} 
-                    currentConfigData={{ type: 'text', systemInstruction: instruction, temperature: temp, model, knowledgeSources }}
+                    currentConfigData={{ tenantId, type: 'text', systemInstruction: instruction, temperature: temp, model, knowledgeSources }}
                     type="text"
                     activeConfigId={activeConfigId}
                     setActiveConfigId={setActiveConfigId}
                     agentName={agentName}
+                    tenantId={tenantId}
                 />
 
                 <div className="space-y-4">
@@ -627,7 +618,7 @@ const TextAgentBuilder: React.FC<{
                         <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Model</label>
                         <select value={model} onChange={e => setModel(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-2 text-sm text-white focus:border-lime-400">
                             <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                            <option value="gemini-3-pro-preview">Gemini 3.0 Pro</option>
+                            <option value="gemini-3-pro-preview">Gemini 3.0 Pro (Thinking)</option>
                         </select>
                     </div>
                     <div>
@@ -712,7 +703,8 @@ const VoiceAgentBuilder: React.FC<{
     savedConfigs: AgentConfiguration[];
     setSavedConfigs: React.Dispatch<React.SetStateAction<AgentConfiguration[]>>;
     onSessionComplete: (session: AgentSession) => void;
-}> = ({ savedConfigs, setSavedConfigs, onSessionComplete }) => {
+    tenantId: string;
+}> = ({ savedConfigs, setSavedConfigs, onSessionComplete, tenantId }) => {
     // Config
     const [instruction, setInstruction] = useState('You are a helpful voice assistant.');
     const [voiceName, setVoiceName] = useState('Puck');
@@ -756,6 +748,7 @@ const VoiceAgentBuilder: React.FC<{
             setSessionId(Date.now().toString());
             setStartTime(Date.now());
 
+            // Use the gemini-2.5-flash-native-audio-preview-09-2025 model for Live API
             const sessionPromise = ai.live.connect({
                 model: 'gemini-2.5-flash-native-audio-preview-09-2025',
                 config: {
@@ -848,6 +841,7 @@ const VoiceAgentBuilder: React.FC<{
         
         const session: AgentSession = {
             id: sessionId,
+            tenantId: tenantId,
             agentName,
             type: 'voice',
             startTime: new Date(startTime).toISOString(),
@@ -881,6 +875,7 @@ const VoiceAgentBuilder: React.FC<{
                     setSavedConfigs={setSavedConfigs} 
                     onLoad={loadConfig} 
                     currentConfigData={{ 
+                        tenantId,
                         type: 'voice', 
                         systemInstruction: instruction, 
                         temperature: temp, 
@@ -893,6 +888,7 @@ const VoiceAgentBuilder: React.FC<{
                     activeConfigId={activeConfigId}
                     setActiveConfigId={setActiveConfigId}
                     agentName={agentName}
+                    tenantId={tenantId}
                 />
                  <div className="space-y-4">
                      <div>
@@ -1029,7 +1025,11 @@ const VoiceAgentBuilder: React.FC<{
 
 // --- MAIN WRAPPER ---
 
-export const Conversations: React.FC = () => {
+interface ConversationsProps {
+  tenantId: string;
+}
+
+export const Conversations: React.FC<ConversationsProps> = ({ tenantId }) => {
   const [activeTab, setActiveTab] = useState<'text' | 'voice' | 'analytics'>('text');
   
   // Persist configs
@@ -1037,6 +1037,9 @@ export const Conversations: React.FC = () => {
   
   // Persist sessions
   const [sessions, setSessions] = useLocalStorage<AgentSession[]>('agent_sessions', []);
+
+  // Filter for analytics
+  const tenantSessions = sessions.filter(s => s.tenantId === tenantId);
 
   const handleSessionComplete = (newSession: AgentSession) => {
       setSessions(prev => [...prev, newSession]);
@@ -1072,9 +1075,9 @@ export const Conversations: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-hidden">
-          {activeTab === 'text' && <TextAgentBuilder savedConfigs={savedConfigs} setSavedConfigs={setSavedConfigs} onSessionComplete={handleSessionComplete} />}
-          {activeTab === 'voice' && <VoiceAgentBuilder savedConfigs={savedConfigs} setSavedConfigs={setSavedConfigs} onSessionComplete={handleSessionComplete} />}
-          {activeTab === 'analytics' && <AgentAnalytics sessions={sessions} />}
+          {activeTab === 'text' && <TextAgentBuilder savedConfigs={savedConfigs} setSavedConfigs={setSavedConfigs} onSessionComplete={handleSessionComplete} tenantId={tenantId} />}
+          {activeTab === 'voice' && <VoiceAgentBuilder savedConfigs={savedConfigs} setSavedConfigs={setSavedConfigs} onSessionComplete={handleSessionComplete} tenantId={tenantId} />}
+          {activeTab === 'analytics' && <AgentAnalytics sessions={tenantSessions} />}
       </div>
     </div>
   );

@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
-import { Palette, Wand2, Save, Upload, Loader2, User, Database, AlertCircle, RefreshCw } from 'lucide-react';
-import { generateBrandAsset } from '../services/geminiService';
 
-export const Settings: React.FC = () => {
+import React, { useState } from 'react';
+import { Palette, Wand2, Save, Upload, Loader2, User, Database, AlertCircle, RefreshCw, Users, Lock } from 'lucide-react';
+import { generateBrandAsset } from '../services/geminiService';
+import { User as UserType, Tenant } from '../types';
+import { MOCK_USERS } from '../constants';
+
+interface SettingsProps {
+    user: UserType;
+    tenant: Tenant | undefined;
+}
+
+export const Settings: React.FC<SettingsProps> = ({ user, tenant }) => {
     const [logoPrompt, setLogoPrompt] = useState('Neo-brutalist logo for an app called "thesolopreneur.app". Minimalist, dark mode, sharp edges, high contrast, lime green and black color scheme. Geometric shapes.');
     const [generatedLogo, setGeneratedLogo] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -35,6 +43,65 @@ export const Settings: React.FC = () => {
              </div>
 
              <div className="flex-1 overflow-y-auto space-y-8 pb-10">
+                
+                {/* User & Organization (Read Only) */}
+                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-zinc-800">
+                        <div className="p-2 bg-cyan-400 border border-black">
+                             <User className="w-5 h-5 text-black" />
+                        </div>
+                        <h3 className="text-xl font-black text-white uppercase">Profile Settings</h3>
+                    </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Organization</label>
+                            <input className="w-full bg-zinc-950 border-2 border-zinc-800 p-3 text-white font-bold opacity-50 cursor-not-allowed" readOnly value={tenant?.name} />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Email</label>
+                            <input className="w-full bg-zinc-950 border-2 border-zinc-800 p-3 text-white font-mono opacity-50 cursor-not-allowed" readOnly value={user.email} />
+                        </div>
+                         <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Role</label>
+                            <div className="inline-flex items-center gap-2 bg-zinc-950 border border-zinc-700 px-3 py-2 text-xs font-mono uppercase text-lime-400">
+                                <Lock className="w-3 h-3" />
+                                {user.role}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Team Management (Admins Only) */}
+                {(user.role === 'admin' || user.role === 'agency_admin') && (
+                    <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-zinc-800">
+                            <div className="p-2 bg-pink-400 border border-black">
+                                <Users className="w-5 h-5 text-black" />
+                            </div>
+                            <h3 className="text-xl font-black text-white uppercase">Team Management</h3>
+                        </div>
+                        <div className="space-y-4">
+                            <p className="text-sm text-zinc-400">Users in this organization:</p>
+                            <div className="space-y-2">
+                                {MOCK_USERS.filter(u => u.tenantId === tenant?.id).map(u => (
+                                    <div key={u.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 p-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-bold text-zinc-500">
+                                                {u.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold text-white">{u.name}</div>
+                                                <div className="text-xs text-zinc-500">{u.email}</div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-mono uppercase bg-zinc-900 border border-zinc-700 px-2 py-1 text-zinc-400">{u.role}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Brand Identity Section */}
                 <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
                     <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-zinc-800">
@@ -84,26 +151,6 @@ export const Settings: React.FC = () => {
                                     <p className="text-zinc-600 text-xs mt-1">Use the AI tool to create your brand asset.</p>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Profile Section */}
-                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                    <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-zinc-800">
-                        <div className="p-2 bg-cyan-400 border border-black">
-                             <User className="w-5 h-5 text-black" />
-                        </div>
-                        <h3 className="text-xl font-black text-white uppercase">Profile Settings</h3>
-                    </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Agency Name</label>
-                            <input className="w-full bg-zinc-950 border-2 border-zinc-800 p-3 text-white font-bold" defaultValue="The Solopreneur App" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Admin Email</label>
-                            <input className="w-full bg-zinc-950 border-2 border-zinc-800 p-3 text-white font-mono" defaultValue="admin@thesolopreneur.app" />
                         </div>
                     </div>
                 </div>

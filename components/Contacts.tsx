@@ -1,18 +1,24 @@
+
 import React, { useState } from 'react';
-import { Contact, StageId } from '../types';
+import { Contact, StageId, UserRole } from '../types';
 import { Mail, Phone, Tag, Plus, Search, Trash2, X, Save } from 'lucide-react';
 
 interface ContactsProps {
   contacts: Contact[];
   setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+  tenantId: string;
+  userRole: UserRole;
 }
 
-export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts }) => {
+export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenantId, userRole }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [isNew, setIsNew] = useState(false);
 
-  const filteredContacts = contacts.filter(c => 
+  // Filter contacts for current tenant
+  const tenantContacts = contacts.filter(c => c.tenantId === tenantId);
+
+  const filteredContacts = tenantContacts.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.company.toLowerCase().includes(searchTerm.toLowerCase())
@@ -23,7 +29,7 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts }) => 
     if (!editingContact) return;
 
     if (isNew) {
-      setContacts(prev => [...prev, { ...editingContact, id: Date.now().toString() }]);
+      setContacts(prev => [...prev, { ...editingContact, id: Date.now().toString(), tenantId }]);
     } else {
       setContacts(prev => prev.map(c => c.id === editingContact.id ? editingContact : c));
     }
@@ -32,6 +38,10 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts }) => 
   };
 
   const handleDelete = (id: string) => {
+    if (userRole === 'user') {
+        alert("You do not have permission to delete contacts.");
+        return;
+    }
     if (confirm('Are you sure you want to delete this contact?')) {
       setContacts(prev => prev.filter(c => c.id !== id));
       setEditingContact(null);
@@ -42,6 +52,7 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts }) => 
     setIsNew(true);
     setEditingContact({
       id: '',
+      tenantId: tenantId,
       name: '',
       company: '',
       email: '',
@@ -134,6 +145,13 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts }) => 
                 </td>
               </tr>
             ))}
+            {filteredContacts.length === 0 && (
+                <tr>
+                    <td colSpan={5} className="p-8 text-center text-zinc-500 font-mono uppercase">
+                        No contacts found for this tenant.
+                    </td>
+                </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -278,7 +296,9 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts }) => 
                         <button 
                             type="button" 
                             onClick={() => handleDelete(editingContact.id)}
-                            className="flex items-center gap-2 text-red-500 font-bold uppercase text-xs hover:text-red-400"
+                            className={`flex items-center gap-2 font-bold uppercase text-xs ${userRole === 'user' ? 'text-zinc-600 cursor-not-allowed' : 'text-red-500 hover:text-red-400'}`}
+                            disabled={userRole === 'user'}
+                            title={userRole === 'user' ? "Permission Denied" : "Delete"}
                         >
                             <Trash2 className="w-4 h-4" />
                             Delete

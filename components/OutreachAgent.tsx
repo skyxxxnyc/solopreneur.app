@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Building2, MapPin, UserPlus, ShieldCheck, AlertTriangle, CheckCircle2, Globe, Link as LinkIcon, Loader2, Save, User } from 'lucide-react';
 import { findDecisionMaker } from '../services/geminiService';
@@ -6,9 +5,10 @@ import { EnrichedProfile, Contact } from '../types';
 
 interface OutreachAgentProps {
     setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+    tenantId: string;
 }
 
-export const OutreachAgent: React.FC<OutreachAgentProps> = ({ setContacts }) => {
+export const OutreachAgent: React.FC<OutreachAgentProps> = ({ setContacts, tenantId }) => {
     const [company, setCompany] = useState('');
     const [location, setLocation] = useState('');
     const [result, setResult] = useState<EnrichedProfile | null>(null);
@@ -31,6 +31,7 @@ export const OutreachAgent: React.FC<OutreachAgentProps> = ({ setContacts }) => 
         
         const newContact: Contact = {
             id: Date.now().toString(),
+            tenantId: tenantId,
             name: result.decisionMaker === 'Unknown' ? 'Decision Maker' : result.decisionMaker,
             company: result.company,
             email: result.contactInfo.includes('@') ? result.contactInfo : '',

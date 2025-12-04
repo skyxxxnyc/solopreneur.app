@@ -1,6 +1,7 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { DollarSign, TrendingUp, Users, Activity } from 'lucide-react';
+import { Contact } from '../types';
 
 const data = [
   { name: 'Mon', value: 4000 },
@@ -35,13 +36,22 @@ const StatCard = ({ title, value, change, icon: Icon, color }: any) => (
   </div>
 );
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  tenantId: string;
+  contacts: Contact[];
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ tenantId, contacts }) => {
+  const tenantContacts = contacts.filter(c => c.tenantId === tenantId);
+  const pipelineValue = tenantContacts.reduce((acc, c) => acc + c.value, 0);
+  const activeLeads = tenantContacts.length;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Pipeline Value" value="$42,500" change="+12.5%" icon={DollarSign} color="bg-lime-400" />
+        <StatCard title="Pipeline Value" value={`$${pipelineValue.toLocaleString()}`} change="+12.5%" icon={DollarSign} color="bg-lime-400" />
         <StatCard title="Conversion Rate" value="18.2%" change="+2.1%" icon={TrendingUp} color="bg-cyan-400" />
-        <StatCard title="Active Leads" value="142" change="+14" icon={Users} color="bg-orange-400" />
+        <StatCard title="Active Leads" value={activeLeads.toString()} change="+14" icon={Users} color="bg-orange-400" />
         <StatCard title="Tasks Due" value="8" change="-2" icon={Activity} color="bg-pink-400" />
       </div>
 

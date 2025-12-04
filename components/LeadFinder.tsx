@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, MapPin, Building2, Plus, Check, Loader2, Globe, Star, Users, ExternalLink, BrainCircuit, Activity, AlertCircle, MessageCircle, UserPlus, ShieldCheck } from 'lucide-react';
 import { findProspects, findDecisionMaker } from '../services/geminiService';
@@ -6,9 +5,10 @@ import { Prospect, Contact } from '../types';
 
 interface LeadFinderProps {
   setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+  tenantId: string;
 }
 
-export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
+export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts, tenantId }) => {
   const [niche, setNiche] = useState('');
   const [location, setLocation] = useState('');
   const [prospects, setProspects] = useState<Prospect[]>([]);
@@ -72,6 +72,7 @@ export const LeadFinder: React.FC<LeadFinderProps> = ({ setContacts }) => {
 
     const newContact: Contact = {
         id: Date.now().toString(),
+        tenantId: tenantId,
         name: contactName,
         company: prospect.name,
         email: contactEmail,

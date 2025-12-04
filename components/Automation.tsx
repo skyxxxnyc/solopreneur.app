@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Plus, Zap, MessageSquare, Clock, ArrowDown, Wand2, Mail, Split, Activity, Loader2, Save, Layout, X, Terminal, CheckCircle2, XCircle, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { WorkflowNode, WorkflowTemplate, WorkflowLog } from '../types';
@@ -13,7 +12,11 @@ const INITIAL_NODES: WorkflowNode[] = [
     { id: '4', type: 'sms', title: 'Send SMS', description: '"Hey {contact.name}, thanks for..."', status: 'idle' }
 ];
 
-export const Automation: React.FC = () => {
+interface AutomationProps {
+    tenantId: string;
+}
+
+export const Automation: React.FC<AutomationProps> = ({ tenantId }) => {
   const [workflowName, setWorkflowName] = useState('New Lead Sequence');
   
   // Backend: Active Workflow
@@ -218,139 +221,113 @@ export const Automation: React.FC = () => {
             {nodes.map((node, index) => (
                 <React.Fragment key={node.id}>
                     {/* Node Card */}
-                    <div className={`w-80 border-2 p-4 shadow-[4px_4px_0px_0px_#27272a] relative z-10 group cursor-pointer transition-all duration-300 ${getNodeStyles(node)}`}>
-                        {/* Type Badge */}
-                        <div className={`absolute -top-3 left-4 text-black text-[10px] font-black uppercase px-2 py-0.5 border-2 border-black ${node.type === 'trigger' ? 'bg-orange-400' : 'bg-zinc-200'}`}>
-                            {node.type}
-                        </div>
+                    <div className={`relative w-full p-4 border-2 transition-all duration-300 hover:translate-x-1 ${getNodeStyles(node)}`}>
+                        {node.status === 'success' && <div className="absolute top-2 right-2 text-green-500"><CheckCircle2 className="w-4 h-4" /></div>}
+                        {node.status === 'error' && <div className="absolute top-2 right-2 text-red-500"><XCircle className="w-4 h-4" /></div>}
+                        {node.status === 'running' && <div className="absolute top-2 right-2 text-blue-500"><Loader2 className="w-4 h-4 animate-spin" /></div>}
 
-                        {/* Status Badge */}
-                        <div className="absolute -top-3 right-4">
-                            {node.status === 'running' && <Loader2 className="w-6 h-6 text-blue-500 bg-zinc-950 rounded-full animate-spin border-2 border-zinc-800 p-1" />}
-                            {node.status === 'success' && <CheckCircle2 className="w-6 h-6 text-green-500 bg-zinc-950 rounded-full border-2 border-zinc-800 p-1" />}
-                            {node.status === 'error' && <XCircle className="w-6 h-6 text-red-500 bg-zinc-950 rounded-full border-2 border-zinc-800 p-1" />}
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-zinc-800 border border-zinc-700">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-zinc-950 border border-zinc-800 rounded-sm">
                                 {getNodeIcon(node.type)}
                             </div>
                             <div>
-                                <h4 className="font-bold text-white text-sm">{node.title}</h4>
-                                <p className="text-xs text-zinc-500 font-mono truncate max-w-[180px]">{node.description}</p>
+                                <h3 className="font-bold text-white text-sm uppercase">{node.title}</h3>
+                                <span className="text-[10px] text-zinc-500 font-mono uppercase bg-zinc-950 px-1 border border-zinc-800">{node.type}</span>
                             </div>
                         </div>
-
-                        {/* Error Message Display */}
+                        <p className="text-xs text-zinc-400 pl-[3.25rem]">{node.description}</p>
+                        
                         {node.errorMessage && (
-                            <div className="mt-3 pt-2 border-t border-red-500/30 flex items-start gap-2">
-                                <AlertCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" />
-                                <p className="text-[10px] text-red-400 font-mono leading-tight">{node.errorMessage}</p>
+                            <div className="mt-3 p-2 bg-red-950/50 border border-red-900/50 text-red-400 text-xs font-mono flex items-start gap-2">
+                                <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
+                                {node.errorMessage}
                             </div>
                         )}
                     </div>
 
                     {/* Connector */}
                     {index < nodes.length - 1 && (
-                        <div className={`h-12 w-0.5 my-0 relative transition-colors duration-300 ${node.status === 'success' ? 'bg-green-500' : 'bg-zinc-700'}`}>
-                            <ArrowDown className={`w-4 h-4 absolute -bottom-2 -left-2 transition-colors duration-300 ${node.status === 'success' ? 'text-green-500' : 'text-zinc-700'}`} />
+                        <div className="h-8 w-0.5 bg-zinc-700 my-0 relative">
+                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-950 border border-zinc-700 rounded-full p-0.5">
+                                 <ArrowDown className="w-3 h-3 text-zinc-500" />
+                             </div>
                         </div>
                     )}
                 </React.Fragment>
             ))}
-
-             {/* Add New Node Button */}
-             {nodes.length > 0 && (
-                 <>
-                    <div className="h-12 w-0.5 bg-zinc-700 my-0 relative">
-                         <ArrowDown className="w-4 h-4 text-zinc-700 absolute -bottom-2 -left-2" />
-                    </div>
-                     <div className="flex flex-col items-center cursor-pointer group">
-                         <div className="w-10 h-10 rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center text-zinc-600 group-hover:border-lime-400 group-hover:text-lime-400 transition-colors bg-zinc-900">
-                            <Plus className="w-6 h-6" />
-                         </div>
-                     </div>
-                 </>
-             )}
+            
+            {/* Add Button at End */}
+            <div className="h-8 w-0.5 bg-zinc-700 my-0"></div>
+            <button className="w-full py-3 border-2 border-dashed border-zinc-700 text-zinc-500 font-bold uppercase text-xs hover:border-lime-400 hover:text-lime-400 transition-colors flex items-center justify-center gap-2 bg-zinc-900/50">
+                <Plus className="w-4 h-4" /> Add Step
+            </button>
         </div>
       </div>
 
-      {/* Execution Logs Console */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-black border-t-2 border-zinc-800 transition-all duration-300 flex flex-col z-40 ${isConsoleOpen ? 'h-64' : 'h-10'}`}>
+      {/* Debug Console / Log Viewer */}
+      <div className={`fixed bottom-0 right-0 w-[500px] bg-zinc-900 border-l-2 border-t-2 border-zinc-800 shadow-[-4px_-4px_20px_rgba(0,0,0,0.5)] transition-transform duration-300 z-50 ${isConsoleOpen ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`}>
           <div 
             onClick={() => setIsConsoleOpen(!isConsoleOpen)}
-            className="flex items-center justify-between px-4 py-2 bg-zinc-900 cursor-pointer border-b border-zinc-800 hover:bg-zinc-800"
+            className="flex justify-between items-center p-2 border-b-2 border-zinc-800 cursor-pointer hover:bg-zinc-800 bg-zinc-950"
           >
-              <div className="flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-lime-400" />
-                  <span className="text-xs font-black uppercase tracking-wider text-zinc-300">System Console</span>
-                  {logs.length > 0 && <span className="text-[10px] bg-zinc-700 px-1.5 rounded-full text-white">{logs.length}</span>}
+              <div className="flex items-center gap-2 text-xs font-black uppercase text-zinc-400">
+                  <Terminal className="w-4 h-4" />
+                  System Logs
+                  {logs.length > 0 && <span className="bg-zinc-800 text-white px-1.5 rounded-full text-[9px]">{logs.length}</span>}
               </div>
               {isConsoleOpen ? <ChevronDown className="w-4 h-4 text-zinc-500" /> : <ChevronUp className="w-4 h-4 text-zinc-500" />}
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4 font-mono text-xs space-y-1 bg-black">
-              {logs.length === 0 && <div className="text-zinc-700 italic">Ready for simulation...</div>}
-              {logs.map((log) => (
-                  <div key={log.id} className="flex gap-3 hover:bg-zinc-900 p-0.5">
-                      <span className="text-zinc-600 min-w-[70px]">{log.timestamp}</span>
-                      <span className={`uppercase font-bold min-w-[60px] ${
-                          log.level === 'info' ? 'text-blue-400' :
-                          log.level === 'warning' ? 'text-yellow-400' :
-                          'text-red-500'
-                      }`}>[{log.level}]</span>
-                      <span className="text-zinc-300">{log.message}</span>
-                  </div>
-              ))}
+          <div className="h-64 overflow-y-auto p-4 bg-black font-mono text-xs space-y-1">
+              {logs.length === 0 ? (
+                  <div className="text-zinc-700 italic">No activity recorded...</div>
+              ) : (
+                  logs.map(log => (
+                      <div key={log.id} className="flex gap-2 hover:bg-zinc-900/50 p-0.5">
+                          <span className="text-zinc-600">[{log.timestamp}]</span>
+                          <span className={`${
+                              log.level === 'error' ? 'text-red-500 font-bold' : 
+                              log.level === 'warning' ? 'text-yellow-500' : 
+                              'text-green-500'
+                          }`}>
+                              {log.level.toUpperCase()}
+                          </span>
+                          <span className="text-zinc-300">{log.message}</span>
+                      </div>
+                  ))
+              )}
               <div ref={logsEndRef} />
           </div>
       </div>
 
       {/* Template Library Modal */}
       {isLibraryOpen && (
-          <div className="absolute inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full md:w-[600px] bg-zinc-950 border-l-2 border-zinc-800 shadow-[-4px_0px_0px_0px_#27272a] h-full flex flex-col animate-in slide-in-from-right duration-300">
+        <div className="absolute inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="w-full md:w-[500px] bg-zinc-950 border-l-2 border-zinc-800 shadow-[-4px_0px_0px_0px_#27272a] h-full flex flex-col animate-in slide-in-from-right duration-300">
                 <div className="p-6 border-b-2 border-zinc-800 bg-zinc-900 flex justify-between items-center">
-                    <div>
-                         <h3 className="text-xl font-black text-white uppercase flex items-center gap-2">
-                             <Layout className="w-5 h-5" />
-                             Workflow Library
-                         </h3>
-                    </div>
+                    <h3 className="text-xl font-black text-white uppercase">Template Library</h3>
                     <button onClick={() => setIsLibraryOpen(false)} className="p-2 hover:bg-zinc-800 transition-colors">
                         <X className="w-5 h-5 text-zinc-400" />
                     </button>
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                     {WORKFLOW_TEMPLATES.map(template => (
-                         <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-4 hover:border-lime-400 transition-colors group">
-                             <div className="flex justify-between items-start mb-2">
-                                 <h4 className="font-bold text-white uppercase">{template.name}</h4>
-                                 <span className="bg-zinc-800 text-zinc-500 text-[10px] font-mono px-2 py-1 rounded-none border border-zinc-700">
-                                     {template.nodes.length} Steps
-                                 </span>
-                             </div>
-                             <p className="text-sm text-zinc-400 mb-4">{template.description}</p>
-                             <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
-                                 {template.nodes.map((n, i) => (
-                                     <div key={i} className="flex items-center text-[10px] text-zinc-500 font-mono shrink-0">
-                                         {i > 0 && <span className="mx-1">→</span>}
-                                         <span className="uppercase">{n.type}</span>
-                                     </div>
-                                 ))}
-                             </div>
-                             <button 
-                                onClick={() => handleLoadTemplate(template)}
-                                className="w-full py-2 bg-zinc-950 border border-zinc-700 text-zinc-300 font-bold uppercase text-xs hover:bg-lime-400 hover:text-black hover:border-lime-400 transition-colors flex items-center justify-center gap-2"
-                             >
-                                 Load Template
-                             </button>
-                         </div>
-                     ))}
+                    {WORKFLOW_TEMPLATES.map(template => (
+                        <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-4 hover:border-lime-400 transition-colors group cursor-pointer" onClick={() => handleLoadTemplate(template)}>
+                            <h4 className="font-bold text-white uppercase mb-1 group-hover:text-lime-400">{template.name}</h4>
+                            <p className="text-xs text-zinc-500 font-mono mb-3">{template.description}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {template.nodes.map((n, i) => (
+                                    <span key={i} className="text-[10px] uppercase bg-zinc-950 border border-zinc-800 px-1 text-zinc-400">
+                                        {n.type}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
-          </div>
+        </div>
       )}
     </div>
   );
