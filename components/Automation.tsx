@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Plus, Zap, MessageSquare, Clock, ArrowDown, Wand2, Mail, Split, Activity, Loader2, Save, Layout, X, Terminal, CheckCircle2, XCircle, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
+import { Play, Plus, Zap, MessageSquare, Clock, ArrowDown, Wand2, Mail, Split, Activity, Loader2, Save, Layout, X, Terminal, CheckCircle2, XCircle, AlertCircle, ChevronUp, ChevronDown, Search } from 'lucide-react';
 import { WorkflowNode, WorkflowTemplate, WorkflowLog } from '../types';
 import { generateWorkflow } from '../services/geminiService';
 import { WORKFLOW_TEMPLATES } from '../constants';
@@ -25,6 +26,7 @@ export const Automation: React.FC<AutomationProps> = ({ tenantId }) => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState('');
   
   // Simulation State
   const [isSimulating, setIsSimulating] = useState(false);
@@ -123,6 +125,11 @@ export const Automation: React.FC<AutomationProps> = ({ tenantId }) => {
       setLogs([]);
       setIsLibraryOpen(false);
   };
+
+  const filteredTemplates = WORKFLOW_TEMPLATES.filter(t => 
+    t.name.toLowerCase().includes(templateSearch.toLowerCase()) || 
+    t.description.toLowerCase().includes(templateSearch.toLowerCase())
+  );
 
   const getNodeIcon = (type: string) => {
       switch(type) {
@@ -303,28 +310,48 @@ export const Automation: React.FC<AutomationProps> = ({ tenantId }) => {
       {/* Template Library Modal */}
       {isLibraryOpen && (
         <div className="absolute inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full md:w-[500px] bg-zinc-950 border-l-2 border-zinc-800 shadow-[-4px_0px_0px_0px_#27272a] h-full flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="w-full md:w-[800px] bg-zinc-950 border-l-2 border-zinc-800 shadow-[-4px_0px_0px_0px_#27272a] h-full flex flex-col animate-in slide-in-from-right duration-300">
                 <div className="p-6 border-b-2 border-zinc-800 bg-zinc-900 flex justify-between items-center">
-                    <h3 className="text-xl font-black text-white uppercase">Template Library</h3>
+                    <div>
+                        <h3 className="text-xl font-black text-white uppercase">Template Library</h3>
+                        <p className="text-zinc-500 font-mono text-xs mt-1">Select a pre-built workflow to start.</p>
+                    </div>
                     <button onClick={() => setIsLibraryOpen(false)} className="p-2 hover:bg-zinc-800 transition-colors">
                         <X className="w-5 h-5 text-zinc-400" />
                     </button>
                 </div>
+
+                <div className="p-4 border-b-2 border-zinc-800 bg-zinc-900/50">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+                        <input 
+                            value={templateSearch}
+                            onChange={(e) => setTemplateSearch(e.target.value)}
+                            placeholder="Search templates..."
+                            className="w-full bg-zinc-950 border border-zinc-700 p-2 pl-9 text-white text-sm focus:border-lime-400 focus:outline-none"
+                        />
+                    </div>
+                </div>
                 
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    {WORKFLOW_TEMPLATES.map(template => (
-                        <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-4 hover:border-lime-400 transition-colors group cursor-pointer" onClick={() => handleLoadTemplate(template)}>
-                            <h4 className="font-bold text-white uppercase mb-1 group-hover:text-lime-400">{template.name}</h4>
-                            <p className="text-xs text-zinc-500 font-mono mb-3">{template.description}</p>
-                            <div className="flex flex-wrap gap-2">
-                                {template.nodes.map((n, i) => (
-                                    <span key={i} className="text-[10px] uppercase bg-zinc-950 border border-zinc-800 px-1 text-zinc-400">
-                                        {n.type}
-                                    </span>
-                                ))}
+                <div className="flex-1 overflow-y-auto p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {filteredTemplates.map(template => (
+                            <div key={template.id} className="bg-zinc-900 border-2 border-zinc-800 p-4 hover:border-lime-400 transition-colors group cursor-pointer flex flex-col" onClick={() => handleLoadTemplate(template)}>
+                                <h4 className="font-bold text-white uppercase mb-1 group-hover:text-lime-400 text-sm">{template.name}</h4>
+                                <p className="text-xs text-zinc-500 font-mono mb-3 line-clamp-2">{template.description}</p>
+                                <div className="mt-auto flex flex-wrap gap-1">
+                                    {template.nodes.map((n, i) => (
+                                        <span key={i} className="text-[9px] uppercase bg-zinc-950 border border-zinc-800 px-1 text-zinc-400">
+                                            {n.type}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+                    {filteredTemplates.length === 0 && (
+                        <div className="text-center text-zinc-500 py-10 font-mono uppercase">No templates found</div>
+                    )}
                 </div>
             </div>
         </div>

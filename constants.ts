@@ -295,6 +295,7 @@ export const INITIAL_AGENT_CONFIGS: AgentConfiguration[] = [
   }
 ];
 
+// --- WORKFLOW TEMPLATES LIBRARY ---
 export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     {
         id: 'wt1',
@@ -329,6 +330,194 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
             { id: '2', type: 'email', title: 'Sorry we missed you', description: 'Subject: Reschedule?' },
             { id: '3', type: 'wait', title: 'Wait 1 Day', description: 'Delay' },
             { id: '4', type: 'action', title: 'Create Task', description: 'Manual Follow-up Call' }
+        ]
+    },
+    {
+        id: 'wt4',
+        name: 'Lead Magnet Delivery',
+        description: 'Deliver file and upsell immediately.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Form Submitted', description: 'E-book Download' },
+            { id: '2', type: 'email', title: 'Here is your download', description: 'Link to PDF' },
+            { id: '3', type: 'wait', title: 'Wait 20 Minutes', description: 'Delay' },
+            { id: '4', type: 'email', title: 'Did you see this?', description: 'Upsell to Consultation' }
+        ]
+    },
+    {
+        id: 'wt5',
+        name: 'Review Request',
+        description: 'Ask happy clients for a Google Review.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Opportunity Won', description: 'Service Completed' },
+            { id: '2', type: 'wait', title: 'Wait 3 Days', description: 'Let them enjoy service' },
+            { id: '3', type: 'email', title: 'Quick Question', description: 'How was your experience?' },
+            { id: '4', type: 'condition', title: 'Clicked Positive?', description: 'If Rating > 4' },
+            { id: '5', type: 'sms', title: 'Google Link', description: 'Please leave a review here!' }
+        ]
+    },
+    {
+        id: 'wt6',
+        name: 'Birthday Promo',
+        description: 'Send an automated offer on their special day.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Date Arrived', description: 'Contact Birthday' },
+            { id: '2', type: 'email', title: 'Happy Birthday!', description: 'Subject: A gift for you' },
+            { id: '3', type: 'wait', title: 'Wait 2 Days', description: 'Delay' },
+            { id: '4', type: 'sms', title: 'Gift Exiring', description: 'Don\'t forget your code!' }
+        ]
+    },
+    {
+        id: 'wt7',
+        name: 'Abandoned Cart Recovery',
+        description: 'Recover lost sales from checkout.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Cart Abandoned', description: 'Checkout page' },
+            { id: '2', type: 'wait', title: 'Wait 1 Hour', description: 'Delay' },
+            { id: '3', type: 'email', title: 'Forgot something?', description: 'Link to cart' },
+            { id: '4', type: 'wait', title: 'Wait 24 Hours', description: 'Delay' },
+            { id: '5', type: 'sms', title: '10% Off Code', description: 'Use code SAVE10' }
+        ]
+    },
+    {
+        id: 'wt8',
+        name: 'Cold Outreach Sequence',
+        description: 'Aggressive B2B prospecting flow.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Tag Added', description: 'Tag: Cold-Prospect' },
+            { id: '2', type: 'email', title: 'Quick Question', description: 'Intro email' },
+            { id: '3', type: 'wait', title: 'Wait 2 Days', description: 'Delay' },
+            { id: '4', type: 'email', title: 'Bump', description: 'Any thoughts?' },
+            { id: '5', type: 'wait', title: 'Wait 3 Days', description: 'Delay' },
+            { id: '6', type: 'action', title: 'Add to Call List', description: 'Manual Task' }
+        ]
+    },
+    {
+        id: 'wt9',
+        name: 'Reactivation Campaign',
+        description: 'Wake up dormant leads.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Last Contact > 90 Days', description: 'Inactivity' },
+            { id: '2', type: 'email', title: 'Are you still looking?', description: '9-word email' },
+            { id: '3', type: 'wait', title: 'Wait 5 Days', description: 'Delay' },
+            { id: '4', type: 'email', title: 'Closing your file', description: 'Breakup email' }
+        ]
+    },
+    {
+        id: 'wt10',
+        name: 'New Client Onboarding',
+        description: 'Collect info after deal signed.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Deal Won', description: 'Contract Signed' },
+            { id: '2', type: 'email', title: 'Welcome!', description: 'Link to onboarding form' },
+            { id: '3', type: 'action', title: 'Notify Team', description: 'Slack/Internal Email' },
+            { id: '4', type: 'wait', title: 'Wait 3 Days', description: 'Check form status' },
+            { id: '5', type: 'sms', title: 'Form Reminder', description: 'Please complete setup' }
+        ]
+    },
+    {
+        id: 'wt11',
+        name: 'Webinar Replay',
+        description: 'Send recording to non-attendees.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Webinar Ended', description: 'Tag: Did-Not-Attend' },
+            { id: '2', type: 'email', title: 'You missed it!', description: 'Here is the replay link' },
+            { id: '3', type: 'wait', title: 'Wait 48 Hours', description: 'Delay' },
+            { id: '4', type: 'email', title: 'Replay expiring', description: 'Last chance to watch' }
+        ]
+    },
+    {
+        id: 'wt12',
+        name: 'Appointment Confirmation',
+        description: 'Reduce no-shows immediately.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Appointment Booked', description: 'Calendar' },
+            { id: '2', type: 'email', title: 'Confirmed', description: 'Calendar Invite attached' },
+            { id: '3', type: 'sms', title: 'Confirmed', description: 'See you at {time}' },
+            { id: '4', type: 'wait', title: 'Wait 24h Before', description: 'Event time' },
+            { id: '5', type: 'email', title: 'Reminder', description: 'Location details' }
+        ]
+    },
+    {
+        id: 'wt13',
+        name: 'Churn Prevention',
+        description: 'Flag at-risk customers.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Usage Low', description: 'Login < 1 per month' },
+            { id: '2', type: 'action', title: 'Alert Account Manager', description: 'High Priority Task' },
+            { id: '3', type: 'email', title: 'Need help?', description: 'Book a success call' }
+        ]
+    },
+    {
+        id: 'wt14',
+        name: 'VIP Up-sell',
+        description: 'Offer premium tier to best clients.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Lifetime Value > $10k', description: 'Revenue Trigger' },
+            { id: '2', type: 'email', title: 'Exclusive Invite', description: 'Join our VIP program' },
+            { id: '3', type: 'action', title: 'Add Tag', description: 'Tag: VIP-prospect' }
+        ]
+    },
+    {
+        id: 'wt15',
+        name: 'Contract Renewal',
+        description: 'Remind client before expiry.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Contract Date', description: '30 Days Before' },
+            { id: '2', type: 'email', title: 'Renewal coming up', description: 'Review your plan' },
+            { id: '3', type: 'wait', title: 'Wait 15 Days', description: 'Delay' },
+            { id: '4', type: 'action', title: 'Create Task', description: 'Call client' }
+        ]
+    },
+    {
+        id: 'wt16',
+        name: 'Networking Follow-up',
+        description: 'Simple scan card follow up.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Contact Created', description: 'Source: Event' },
+            { id: '2', type: 'wait', title: 'Wait 3 Hours', description: 'Look natural' },
+            { id: '3', type: 'email', title: 'Nice meeting you', description: 'Let\'s grab coffee' },
+            { id: '4', type: 'action', title: 'Connect on LinkedIn', description: 'Manual Task' }
+        ]
+    },
+    {
+        id: 'wt17',
+        name: 'Holiday Greeting',
+        description: 'Seasonal blast.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Specific Date', description: 'Dec 24th' },
+            { id: '2', type: 'email', title: 'Happy Holidays', description: 'From the team' }
+        ]
+    },
+    {
+        id: 'wt18',
+        name: 'Beta Tester Invite',
+        description: 'Invite users to test new features.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Tag Added', description: 'Power-User' },
+            { id: '2', type: 'email', title: 'Early Access', description: 'Try new features first' },
+            { id: '3', type: 'wait', title: 'Wait 3 Days', description: 'Delay' },
+            { id: '4', type: 'sms', title: 'Feedback?', description: 'What did you think?' }
+        ]
+    },
+    {
+        id: 'wt19',
+        name: 'Invoice Overdue',
+        description: 'Chasing payments automatically.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Invoice Status', description: 'Overdue 1 Day' },
+            { id: '2', type: 'email', title: 'Payment Failed', description: 'Please update card' },
+            { id: '3', type: 'wait', title: 'Wait 3 Days', description: 'Delay' },
+            { id: '4', type: 'sms', title: 'Urgent: Service Suspension', description: 'Please pay now' }
+        ]
+    },
+    {
+        id: 'wt20',
+        name: 'Gamification High Score',
+        description: 'Reward user activity.',
+        nodes: [
+            { id: '1', type: 'trigger', title: 'Points > 1000', description: 'Gamification' },
+            { id: '2', type: 'email', title: 'You are a legend!', description: 'Badge unlocked' },
+            { id: '3', type: 'sms', title: 'Reward Unlocked', description: 'Click to claim prize' }
         ]
     }
 ];
