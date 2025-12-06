@@ -1,4 +1,5 @@
 
+
 import { Contact, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost, Appointment, InboxThread, Tenant, User } from './types';
 
 export const MOCK_TENANTS: Tenant[] = [
@@ -166,6 +167,155 @@ export const FUNNEL_TEMPLATES: Funnel[] = [
           { id: 'e4', type: 'header', content: '$97 - Limited Time' },
           { id: 'e5', type: 'button', content: 'Buy Now' },
           { id: 'e6', type: 'text', content: '"This toolkit changed my life." - Verified Customer' }
+      ]
+  },
+  {
+      id: 'tpl_agency_app',
+      tenantId: 't1',
+      name: 'High-Ticket Application',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Apply for our Exclusive Partnership' },
+          { id: 'e2', type: 'image', content: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80' },
+          { id: 'e3', type: 'text', content: 'We only work with 5 new clients per month. Watch the video below to see if you qualify.' },
+          { id: 'e4', type: 'text', content: 'VIDEO PLACEHOLDER (Embed VSL Here)' },
+          { id: 'e5', type: 'button', content: 'Apply Now' }
+      ]
+  },
+  {
+      id: 'tpl_waitlist',
+      tenantId: 't1',
+      name: 'Product Waitlist',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Something Big is Coming...' },
+          { id: 'e2', type: 'text', content: 'Be the first to know when we launch and get an exclusive 50% early-bird discount.' },
+          { id: 'e3', type: 'form', content: 'Enter your email' },
+          { id: 'e4', type: 'text', content: 'Only 500 spots available for early access.' }
+      ]
+  },
+  {
+      id: 'tpl_challenge',
+      tenantId: 't1',
+      name: '5-Day Challenge',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Join the 5-Day Lead Gen Challenge' },
+          { id: 'e2', type: 'image', content: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80' },
+          { id: 'e3', type: 'text', content: 'Day 1: Mindset. Day 2: Tools. Day 3: Strategy. Day 4: Execution. Day 5: Scale.' },
+          { id: 'e4', type: 'form', content: 'Reserve My Spot' },
+          { id: 'e5', type: 'button', content: 'Join Challenge' }
+      ]
+  },
+  {
+      id: 'tpl_real_estate',
+      tenantId: 't1',
+      name: 'Real Estate Listing',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Luxury Downtown Penthouse' },
+          { id: 'e2', type: 'image', content: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80' },
+          { id: 'e3', type: 'text', content: '3 Bed, 2 Bath. Floor to ceiling windows. Gym and Pool access included.' },
+          { id: 'e4', type: 'text', content: 'Price: $1,200,000' },
+          { id: 'e5', type: 'form', content: 'Your Phone Number' },
+          { id: 'e6', type: 'button', content: 'Schedule Viewing' }
+      ]
+  },
+  {
+      id: 'tpl_saas_demo',
+      tenantId: 't1',
+      name: 'SaaS Demo Request',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'See the Platform in Action' },
+          { id: 'e2', type: 'text', content: 'Automate your workflow, save time, and increase revenue with our all-in-one solution.' },
+          { id: 'e3', type: 'form', content: 'Work Email' },
+          { id: 'e4', type: 'button', content: 'Book Live Demo' }
+      ]
+  },
+  {
+      id: 'tpl_affiliate',
+      tenantId: 't1',
+      name: 'Affiliate Bridge Page',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'My Honest Review of Tool X' },
+          { id: 'e2', type: 'text', content: 'I used this tool for 30 days and here is what happened...' },
+          { id: 'e3', type: 'image', content: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80' },
+          { id: 'e4', type: 'text', content: 'Bonus: Get my setup guide free when you sign up below.' },
+          { id: 'e5', type: 'button', content: 'Get The Tool + Bonuses' }
+      ]
+  },
+  {
+      id: 'tpl_quiz',
+      tenantId: 't1',
+      name: 'Quiz Landing Page',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'What is your Marketing Archetype?' },
+          { id: 'e2', type: 'text', content: 'Take this 60-second quiz to find out your hidden strengths and weaknesses.' },
+          { id: 'e3', type: 'image', content: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?w=800&q=80' },
+          { id: 'e4', type: 'button', content: 'Start Quiz' }
+      ]
+  },
+  {
+      id: 'tpl_ecommerce_deal',
+      tenantId: 't1',
+      name: 'E-commerce Flash Sale',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Flash Sale: 48 Hours Only!' },
+          { id: 'e2', type: 'image', content: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80' },
+          { id: 'e3', type: 'text', content: 'Premium Smart Watch. Tracks steps, heart rate, and sleep.' },
+          { id: 'e4', type: 'header', content: '50% OFF - $49.99' },
+          { id: 'e5', type: 'button', content: 'Add to Cart' },
+          { id: 'e6', type: 'text', content: '⭐⭐⭐⭐⭐ "Best watch I ever owned" - Jane D.' }
+      ]
+  },
+  {
+      id: 'tpl_podcast',
+      tenantId: 't1',
+      name: 'Podcast Launch Team',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Join the Launch Team' },
+          { id: 'e2', type: 'text', content: 'Help us hit #1 on iTunes and get exclusive swag and shoutouts.' },
+          { id: 'e3', type: 'image', content: 'https://images.unsplash.com/photo-1478737270239-2f02b77ac6d5?w=800&q=80' },
+          { id: 'e4', type: 'form', content: 'Email Address' },
+          { id: 'e5', type: 'button', content: 'I am In!' }
+      ]
+  },
+  {
+      id: 'tpl_local_service',
+      tenantId: 't1',
+      name: 'Local Service Estimate',
+      status: 'draft',
+      visits: 0,
+      conversions: 0,
+      elements: [
+          { id: 'e1', type: 'header', content: 'Get a Free Roofing Estimate' },
+          { id: 'e2', type: 'text', content: 'Protect your home before winter comes. Fast, reliable service in Austin.' },
+          { id: 'e3', type: 'form', content: 'Zip Code' },
+          { id: 'e4', type: 'form', content: 'Phone Number' },
+          { id: 'e5', type: 'button', content: 'Get Quote' }
       ]
   }
 ];
