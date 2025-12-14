@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob, Chat } from '@google/genai';
 import { Bot, Mic, Square, Send, MessageSquare, Mic2, Settings2, Trash2, Save, ChevronDown, Activity, Clock, Heart, BarChart3, TrendingUp, RefreshCw, Link, FileText, Upload, AlertCircle, Star, X, CheckCircle2, Plus, Volume2, Gauge } from 'lucide-react';
@@ -68,19 +69,19 @@ const RatingModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[8px_8px_0px_0px_#27272a] max-w-sm w-full">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-black text-white uppercase">Session Feedback</h3>
-                    <button onClick={onClose}><X className="w-5 h-5 text-zinc-500 hover:text-white" /></button>
+        <div className="absolute inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-black border-2 border-zinc-800 p-10 shadow-[12px_12px_0px_0px_#27272a] max-w-sm w-full relative">
+                <div className="absolute top-4 right-4">
+                     <button onClick={onClose}><X className="w-6 h-6 text-zinc-600 hover:text-white" /></button>
                 </div>
-                <p className="text-zinc-400 text-sm mb-6 font-mono">How would you rate the agent's performance?</p>
-                <div className="flex justify-center gap-2 mb-8">
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 italic">Session Feedback</h3>
+                <p className="text-zinc-500 text-sm mb-10 font-mono text-center uppercase tracking-widest border-b-2 border-zinc-900 pb-6">Rate Agent Performance</p>
+                <div className="flex justify-center gap-4 mb-12">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <button 
                             key={star}
                             onClick={() => setRating(star)}
-                            className={`p-2 transition-transform hover:scale-110 ${rating >= star ? 'text-lime-400' : 'text-zinc-700'}`}
+                            className={`p-2 transition-all hover:scale-110 ${rating >= star ? 'text-lime-400 drop-shadow-[0_0_12px_rgba(163,230,53,0.6)]' : 'text-zinc-800'}`}
                         >
                             <Star className="w-8 h-8 fill-current" />
                         </button>
@@ -89,7 +90,7 @@ const RatingModal: React.FC<{
                 <button 
                     onClick={() => onSubmit(rating)}
                     disabled={rating === 0}
-                    className="w-full bg-lime-400 text-black py-3 font-black uppercase tracking-wider border-2 border-lime-500 hover:translate-y-1 hover:shadow-none shadow-[4px_4px_0px_0px_#3f3f46] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="w-full bg-lime-400 text-black py-4 font-black uppercase tracking-[0.2em] border-2 border-lime-500 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#000] shadow-[6px_6px_0px_0px_#000] disabled:opacity-50 disabled:cursor-not-allowed transition-all disabled:shadow-none disabled:transform-none"
                 >
                     Submit Rating
                 </button>
@@ -113,7 +114,6 @@ const ConfigManager: React.FC<{
     const [isExpanded, setIsExpanded] = useState(true);
 
     const activeConfig = savedConfigs.find(c => c.id === activeConfigId);
-    // Filter configs by tenantId
     const filteredConfigs = savedConfigs.filter(c => c.type === type && c.tenantId === tenantId);
 
     const handleSaveNew = () => {
@@ -146,30 +146,29 @@ const ConfigManager: React.FC<{
     };
 
     return (
-        <div className="border-b-2 border-zinc-800 pb-4 mb-6">
+        <div className="border-b-2 border-zinc-800 pb-8 mb-8">
             <button 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center justify-between w-full text-xs font-black uppercase text-zinc-500 hover:text-white mb-2"
+                className="flex items-center justify-between w-full text-[10px] font-black uppercase text-zinc-500 hover:text-white mb-6 tracking-[0.2em]"
             >
-                <span>Saved Personas ({filteredConfigs.length})</span>
-                {isExpanded ? <ChevronDown className="w-4 h-4 rotate-180" /> : <ChevronDown className="w-4 h-4" />}
+                <span>Persona Library ({filteredConfigs.length})</span>
+                {isExpanded ? <ChevronDown className="w-4 h-4 rotate-180 transition-transform" /> : <ChevronDown className="w-4 h-4 transition-transform" />}
             </button>
             
             {isExpanded && (
-                <div className="space-y-3 animate-in slide-in-from-top-2">
-                    {/* Controls for Active vs New */}
-                    <div className="flex flex-col gap-2">
+                <div className="space-y-4 animate-in slide-in-from-top-2">
+                    <div className="flex flex-col gap-4">
                         {activeConfigId && (
                             <div className="flex gap-2">
                                 <button 
                                     onClick={handleUpdate}
-                                    className="flex-1 bg-zinc-800 border border-lime-400 text-lime-400 p-2 text-xs font-bold uppercase hover:bg-lime-400 hover:text-black transition-colors flex items-center justify-center gap-2"
+                                    className="flex-1 bg-black border-2 border-lime-400 text-lime-400 p-3 text-[10px] font-black uppercase hover:bg-lime-400 hover:text-black transition-colors flex items-center justify-center gap-2 tracking-wide"
                                 >
                                     <Save className="w-3 h-3" /> Update "{activeConfig?.name || agentName}"
                                 </button>
                                 <button 
                                     onClick={() => setActiveConfigId(null)}
-                                    className="bg-zinc-900 border border-zinc-700 text-zinc-500 p-2 hover:text-white"
+                                    className="bg-black border-2 border-zinc-800 text-zinc-500 p-3 hover:text-white hover:border-zinc-500 transition-colors"
                                     title="Deselect"
                                 >
                                     <X className="w-3 h-3" />
@@ -181,13 +180,13 @@ const ConfigManager: React.FC<{
                             <input 
                                 value={newConfigName}
                                 onChange={(e) => setNewConfigName(e.target.value)}
-                                placeholder="Save as new persona..."
-                                className="flex-1 bg-zinc-950 border border-zinc-700 p-2 text-xs text-white focus:border-lime-400 focus:outline-none"
+                                placeholder="NEW PERSONA NAME..."
+                                className="flex-1 bg-black border-2 border-zinc-800 p-3 text-xs text-white focus:border-lime-400 focus:outline-none transition-colors font-bold placeholder:text-zinc-700"
                             />
                             <button 
                                 onClick={handleSaveNew}
                                 disabled={!newConfigName}
-                                className="bg-zinc-800 text-zinc-300 p-2 border border-zinc-700 hover:bg-zinc-700 disabled:opacity-50 hover:text-white"
+                                className="bg-zinc-900 text-zinc-300 p-3 border-2 border-zinc-800 hover:bg-zinc-800 disabled:opacity-50 hover:text-white hover:border-lime-400 transition-colors"
                                 title="Save New"
                             >
                                 <Plus className="w-4 h-4" />
@@ -195,19 +194,19 @@ const ConfigManager: React.FC<{
                         </div>
                     </div>
 
-                    <div className="max-h-40 overflow-y-auto space-y-1">
+                    <div className="max-h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                         {filteredConfigs.map(config => (
                             <div 
                                 key={config.id} 
                                 onClick={() => onLoad(config)}
-                                className={`group flex justify-between items-center p-2 border cursor-pointer text-xs transition-colors ${
+                                className={`group flex justify-between items-center p-3 border-l-[4px] cursor-pointer text-xs transition-all ${
                                     activeConfigId === config.id 
-                                    ? 'bg-lime-900/20 border-lime-500/50 text-lime-400' 
-                                    : 'bg-zinc-900 border-zinc-800 hover:border-lime-400 text-zinc-300'
+                                    ? 'bg-zinc-900 border-lime-400 text-white font-black tracking-wide' 
+                                    : 'bg-black border-zinc-800 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300'
                                 }`}
                             >
-                                <span className="font-bold">{config.name}</span>
-                                <button onClick={(e) => handleDelete(config.id, e)} className="text-zinc-600 hover:text-red-500">
+                                <span className="uppercase">{config.name}</span>
+                                <button onClick={(e) => handleDelete(config.id, e)} className="text-zinc-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Trash2 className="w-3 h-3" />
                                 </button>
                             </div>
@@ -224,98 +223,126 @@ const KnowledgeBaseConfig: React.FC<{
     setSources: React.Dispatch<React.SetStateAction<KnowledgeSource[]>>;
 }> = ({ sources, setSources }) => {
     const [inputUrl, setInputUrl] = useState('');
-    const [isAdding, setIsAdding] = useState(false);
+    const [isAddingUrl, setIsAddingUrl] = useState(false);
+    const [isAddingFile, setIsAddingFile] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const addSource = (type: 'url' | 'file', title: string) => {
-        setIsAdding(true);
+    const addUrlSource = () => {
+        if (!inputUrl) return;
+        setIsAddingUrl(true);
         setTimeout(() => {
             setSources(prev => [...prev, {
                 id: Date.now().toString(),
-                type,
-                title,
+                type: 'url',
+                title: inputUrl,
                 status: 'active',
                 addedAt: new Date().toLocaleDateString()
             }]);
-            setIsAdding(false);
+            setIsAddingUrl(false);
             setInputUrl('');
         }, 1000);
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            alert('Please upload a PDF file.');
+            return;
+        }
+
+        setIsAddingFile(true);
+        setTimeout(() => {
+            setSources(prev => [...prev, {
+                id: Date.now().toString(),
+                type: 'file',
+                title: file.name,
+                status: 'active',
+                addedAt: new Date().toLocaleDateString()
+            }]);
+            setIsAddingFile(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }, 1500);
+    };
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 pt-6 border-t-2 border-zinc-800">
             <div>
-                <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Knowledge Base</label>
-                <div className="flex gap-2 mb-2">
+                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Knowledge Base</label>
+                <div className="flex gap-2 mb-4">
                     <input 
                         value={inputUrl}
                         onChange={(e) => setInputUrl(e.target.value)}
-                        placeholder="https://..."
-                        className="flex-1 bg-zinc-950 border border-zinc-800 p-2 text-xs text-white focus:border-lime-400 focus:outline-none"
+                        placeholder="HTTPS://..."
+                        className="flex-1 bg-black border-2 border-zinc-800 p-3 text-xs text-white focus:border-lime-400 focus:outline-none transition-colors font-bold"
                     />
                     <button 
-                        onClick={() => addSource('url', inputUrl)}
-                        disabled={!inputUrl || isAdding}
-                        className="bg-zinc-800 p-2 border border-zinc-700 hover:bg-zinc-700 disabled:opacity-50"
+                        onClick={addUrlSource}
+                        disabled={!inputUrl || isAddingUrl}
+                        className="bg-black px-4 border-2 border-zinc-800 hover:bg-zinc-900 disabled:opacity-50 text-zinc-400 hover:text-white transition-colors hover:border-zinc-600"
+                        title="Add URL"
                     >
-                        {isAdding ? <RefreshCw className="w-4 h-4 animate-spin text-zinc-400" /> : <Link className="w-4 h-4 text-zinc-400" />}
+                        {isAddingUrl ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link className="w-4 h-4" />}
                     </button>
+                    
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="application/pdf" 
+                        className="hidden" 
+                    />
                     <button 
-                        onClick={() => addSource('file', 'Company_Policy.pdf')}
-                        disabled={isAdding}
-                        className="bg-zinc-800 p-2 border border-zinc-700 hover:bg-zinc-700 disabled:opacity-50"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isAddingFile}
+                        className="bg-black px-4 border-2 border-zinc-800 hover:bg-zinc-900 disabled:opacity-50 text-zinc-400 hover:text-white transition-colors hover:border-zinc-600"
+                        title="Upload PDF"
                     >
-                        <Upload className="w-4 h-4 text-zinc-400" />
+                        {isAddingFile ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     </button>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-2">
                     {sources.map(src => (
-                        <div key={src.id} className="flex items-center gap-2 p-2 bg-zinc-900 border border-zinc-800">
+                        <div key={src.id} className="flex items-center gap-3 p-3 bg-zinc-900 border-l-2 border-zinc-800 hover:border-l-lime-400 group transition-all">
                             {src.type === 'url' ? <Link className="w-3 h-3 text-cyan-400" /> : <FileText className="w-3 h-3 text-orange-400" />}
-                            <span className="flex-1 text-[10px] font-mono text-zinc-300 truncate">{src.title}</span>
-                            <span className="text-[9px] uppercase text-green-500 font-bold">{src.status}</span>
-                            <button onClick={() => setSources(s => s.filter(i => i.id !== src.id))} className="text-zinc-600 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                            <span className="flex-1 text-[10px] font-mono text-zinc-300 truncate font-bold">{src.title}</span>
+                            <span className="text-[9px] uppercase text-lime-400 font-black tracking-wider bg-lime-900/20 px-2 py-0.5 border border-lime-900/50">{src.status}</span>
+                            <button onClick={() => setSources(s => s.filter(i => i.id !== src.id))} className="text-zinc-600 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                                <Trash2 className="w-3 h-3" />
+                            </button>
                         </div>
                     ))}
-                    {sources.length === 0 && <div className="text-[10px] text-zinc-600 italic text-center py-2">No data sources connected</div>}
+                    {sources.length === 0 && <div className="text-[10px] text-zinc-700 font-mono text-center py-6 border-2 border-dashed border-zinc-900 uppercase tracking-widest">No external knowledge connected</div>}
                 </div>
             </div>
         </div>
     );
 };
 
-// --- ANALYTICS DASHBOARD ---
-
 const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) => {
-    // Basic Calculations
     const totalSessions = sessions.length;
-    const completedSessions = sessions.filter(s => s.status === 'completed');
-    
-    // Average Latency (Only text sessions have valid latency tracking in this impl)
     const sessionsWithLatency = sessions.filter(s => s.avgLatency && s.avgLatency > 0);
     const avgLatencyMs = sessionsWithLatency.length > 0
         ? sessionsWithLatency.reduce((acc, curr) => acc + (curr.avgLatency || 0), 0) / sessionsWithLatency.length
         : 0;
     
-    // Average Duration
     const avgDurationSec = totalSessions > 0
         ? sessions.reduce((acc, curr) => acc + curr.duration, 0) / totalSessions
         : 0;
 
-    // CSAT
     const ratedSessions = sessions.filter(s => s.rating);
     const avgRating = ratedSessions.length > 0
         ? ratedSessions.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratedSessions.length
         : 0;
 
-    // Charts Data
     const sentimentData = [
-        { name: 'Positive', value: ratedSessions.filter(s => (s.rating || 0) >= 4).length, color: '#a3e635' }, // lime-400
-        { name: 'Neutral', value: ratedSessions.filter(s => (s.rating || 0) === 3).length, color: '#fbbf24' }, // amber-400
-        { name: 'Negative', value: ratedSessions.filter(s => (s.rating || 0) <= 2).length, color: '#f87171' }, // red-400
+        { name: 'Positive', value: ratedSessions.filter(s => (s.rating || 0) >= 4).length, color: '#a3e635' }, 
+        { name: 'Neutral', value: ratedSessions.filter(s => (s.rating || 0) === 3).length, color: '#fbbf24' }, 
+        { name: 'Negative', value: ratedSessions.filter(s => (s.rating || 0) <= 2).length, color: '#f87171' }, 
     ];
 
-    // Last 7 days performance
     const last7Days = Array.from({length: 7}, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (6 - i));
@@ -329,7 +356,7 @@ const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) =>
     const performanceData = last7Days.map(day => {
         const daySessions = sessions.filter(s => s.startTime.startsWith(day.isoDate));
         const dayLatency = daySessions.filter(s => s.avgLatency).length > 0
-            ? daySessions.filter(s => s.avgLatency).reduce((acc, s) => acc + (s.avgLatency || 0), 0) / daySessions.filter(s => s.avgLatency).length / 1000 // to seconds for chart
+            ? daySessions.filter(s => s.avgLatency).reduce((acc, s) => acc + (s.avgLatency || 0), 0) / daySessions.filter(s => s.avgLatency).length / 1000 
             : 0;
         
         return {
@@ -346,60 +373,64 @@ const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) =>
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full overflow-y-auto pr-2 pb-10">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full overflow-y-auto pr-2 pb-10 custom-scrollbar">
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-zinc-500 font-bold uppercase text-xs">Avg. Response Time</h3>
-                        <Activity className="w-4 h-4 text-cyan-400" />
+                <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
+                    <div className="flex justify-between items-start mb-6">
+                        <h3 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Avg. Response Time</h3>
+                        <Activity className="w-5 h-5 text-cyan-400" />
                     </div>
-                    <div className="text-3xl font-black text-white font-mono">{(avgLatencyMs / 1000).toFixed(2)}s</div>
-                    <div className="text-[10px] text-zinc-500 font-bold mt-1">Based on {sessionsWithLatency.length} text sessions</div>
+                    <div className="text-5xl font-black text-white font-mono tracking-tight mb-2">{(avgLatencyMs / 1000).toFixed(2)}s</div>
+                    <div className="text-[10px] text-zinc-600 font-bold font-mono uppercase border-t border-zinc-900 pt-3">Based on {sessionsWithLatency.length} text sessions</div>
                 </div>
 
-                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-zinc-500 font-bold uppercase text-xs">Avg. Duration</h3>
-                        <Clock className="w-4 h-4 text-lime-400" />
+                <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
+                    <div className="flex justify-between items-start mb-6">
+                        <h3 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">Avg. Duration</h3>
+                        <Clock className="w-5 h-5 text-lime-400" />
                     </div>
-                    <div className="text-3xl font-black text-white font-mono">{formatDuration(avgDurationSec)}</div>
-                    <div className="text-[10px] text-zinc-500 font-bold mt-1">Total {totalSessions} sessions</div>
+                    <div className="text-5xl font-black text-white font-mono tracking-tight mb-2">{formatDuration(avgDurationSec)}</div>
+                    <div className="text-[10px] text-zinc-600 font-bold font-mono uppercase border-t border-zinc-900 pt-3">Total {totalSessions} sessions</div>
                 </div>
 
-                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-zinc-500 font-bold uppercase text-xs">CSAT Score</h3>
-                        <Heart className="w-4 h-4 text-pink-400" />
+                <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
+                    <div className="flex justify-between items-start mb-6">
+                        <h3 className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">CSAT Score</h3>
+                        <Heart className="w-5 h-5 text-pink-400" />
                     </div>
-                    <div className="text-3xl font-black text-white font-mono">{avgRating.toFixed(1)}/5</div>
-                    <div className="text-[10px] text-zinc-500 font-bold mt-1">Based on {ratedSessions.length} ratings</div>
+                    <div className="text-5xl font-black text-white font-mono tracking-tight mb-2">{avgRating.toFixed(1)}<span className="text-xl text-zinc-600">/5</span></div>
+                    <div className="text-[10px] text-zinc-600 font-bold font-mono uppercase border-t border-zinc-900 pt-3">Based on {ratedSessions.length} ratings</div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                    <h3 className="text-sm font-black text-white uppercase mb-6">Latency & Volume (7 Days)</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
+                    <h3 className="text-xs font-black text-white uppercase mb-8 tracking-[0.2em] flex items-center gap-2">
+                        <div className="w-2 h-2 bg-lime-400"></div> Latency & Volume
+                    </h3>
                     <div className="h-64 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={performanceData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
-                                <XAxis dataKey="name" stroke="#71717a" tick={{ fontFamily: 'monospace', fontSize: 10 }} />
-                                <YAxis stroke="#71717a" tick={{ fontFamily: 'monospace', fontSize: 10 }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                                <XAxis dataKey="name" stroke="#52525b" tick={{ fontFamily: 'monospace', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} dy={10} />
+                                <YAxis stroke="#52525b" tick={{ fontFamily: 'monospace', fontSize: 10, fontWeight: 'bold' }} axisLine={false} tickLine={false} dx={-10} />
                                 <RechartsTooltip
-                                    contentStyle={{ backgroundColor: '#18181b', border: '2px solid #3f3f46', borderRadius: '0px' }}
-                                    itemStyle={{ fontFamily: 'monospace' }}
-                                    cursor={{ fill: '#27272a' }}
+                                    contentStyle={{ backgroundColor: '#000', border: '2px solid #3f3f46', borderRadius: '0px', boxShadow: '4px 4px 0px 0px #fff' }}
+                                    itemStyle={{ fontFamily: 'monospace', fontSize: '12px', textTransform: 'uppercase' }}
+                                    cursor={{ fill: '#18181b' }}
                                 />
-                                <Bar dataKey="conversations" fill="#a3e635" barSize={30} />
+                                <Bar dataKey="conversations" fill="#a3e635" barSize={32} />
                                 <Line type="monotone" dataKey="latency" stroke="#22d3ee" strokeWidth={2} dot={false} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                    <h3 className="text-sm font-black text-white uppercase mb-6">Sentiment Analysis</h3>
+                <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
+                    <h3 className="text-xs font-black text-white uppercase mb-8 tracking-[0.2em] flex items-center gap-2">
+                         <div className="w-2 h-2 bg-pink-400"></div> Sentiment Analysis
+                    </h3>
                     <div className="h-64 w-full flex items-center justify-center">
                         {ratedSessions.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
@@ -407,58 +438,63 @@ const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) =>
                                     <Pie
                                         data={sentimentData}
                                         innerRadius={60}
-                                        outerRadius={80}
+                                        outerRadius={90}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        stroke="none"
                                     >
                                         {sentimentData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
-                                    <RechartsTooltip contentStyle={{ backgroundColor: '#18181b', border: '2px solid #3f3f46' }} itemStyle={{ fontFamily: 'monospace' }} />
+                                    <RechartsTooltip contentStyle={{ backgroundColor: '#000', border: '2px solid #3f3f46', color: '#fff' }} itemStyle={{ fontFamily: 'monospace', textTransform: 'uppercase' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="text-zinc-600 font-mono text-xs uppercase">No ratings yet</div>
+                            <div className="text-zinc-600 font-mono text-xs uppercase tracking-widest border-2 border-dashed border-zinc-800 p-8">No ratings recorded</div>
                         )}
                     </div>
-                    <div className="flex justify-center gap-4 mt-4">
+                    <div className="flex justify-center gap-6 mt-6">
                         {sentimentData.map((d) => (
                             <div key={d.name} className="flex items-center gap-2">
-                                <div className="w-3 h-3" style={{ backgroundColor: d.color }}></div>
-                                <span className="text-xs text-zinc-400 uppercase font-bold">{d.name}</span>
+                                <div className="w-3 h-3 border border-black shadow-sm" style={{ backgroundColor: d.color }}></div>
+                                <span className="text-[10px] text-zinc-400 uppercase font-black tracking-wider">{d.name}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            <div className="bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a]">
-                <h3 className="text-sm font-black text-white uppercase mb-4">Recent Sessions</h3>
+            <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
+                <h3 className="text-xs font-black text-white uppercase mb-6 tracking-[0.2em]">Session Logs</h3>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b-2 border-zinc-800 text-zinc-500 text-[10px] uppercase font-bold">
-                                <th className="pb-2">Date</th>
-                                <th className="pb-2">Agent Name</th>
-                                <th className="pb-2">Type</th>
-                                <th className="pb-2">Duration</th>
-                                <th className="pb-2">Rating</th>
-                                <th className="pb-2">Status</th>
+                            <tr className="border-b-2 border-zinc-800 text-zinc-500 text-[10px] uppercase font-black tracking-[0.1em]">
+                                <th className="pb-4 pl-2">Timestamp</th>
+                                <th className="pb-4">Agent Name</th>
+                                <th className="pb-4">Modality</th>
+                                <th className="pb-4">Duration</th>
+                                <th className="pb-4">Rating</th>
+                                <th className="pb-4">Status</th>
                             </tr>
                         </thead>
                         <tbody className="text-xs font-mono text-zinc-300">
                             {sessions.slice().reverse().slice(0, 5).map(session => (
-                                <tr key={session.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/50 transition-colors">
-                                    <td className="py-3 text-zinc-500">{new Date(session.startTime).toLocaleString()}</td>
-                                    <td className="py-3 text-white font-bold">{session.agentName}</td>
-                                    <td className="py-3 uppercase text-[10px]">{session.type}</td>
-                                    <td className="py-3">{formatDuration(session.duration)}</td>
-                                    <td className="py-3 text-lime-400">
+                                <tr key={session.id} className="border-b border-zinc-800 hover:bg-zinc-900 transition-colors group">
+                                    <td className="py-5 pl-2 text-zinc-500 font-bold group-hover:text-zinc-300 transition-colors">{new Date(session.startTime).toLocaleString()}</td>
+                                    <td className="py-5 text-white font-bold uppercase">{session.agentName}</td>
+                                    <td className="py-5">
+                                        <span className="bg-black border border-zinc-800 px-2 py-1 text-[9px] uppercase font-bold tracking-wide text-zinc-400">
+                                            {session.type}
+                                        </span>
+                                    </td>
+                                    <td className="py-5 text-zinc-400">{formatDuration(session.duration)}</td>
+                                    <td className="py-5 text-lime-400 tracking-widest text-sm">
                                         {session.rating ? '★'.repeat(session.rating) + '☆'.repeat(5 - session.rating) : '-'}
                                     </td>
-                                    <td className="py-3">
-                                        <span className={`px-1 py-0.5 border ${session.status === 'completed' ? 'bg-green-900/30 text-green-400 border-green-900' : 'bg-red-900/30 text-red-400 border-red-900'}`}>
+                                    <td className="py-5">
+                                        <span className={`px-2 py-1 border text-[9px] uppercase font-bold tracking-wide ${session.status === 'completed' ? 'bg-green-900/10 text-green-400 border-green-900' : 'bg-red-900/10 text-red-400 border-red-900'}`}>
                                             {session.status}
                                         </span>
                                     </td>
@@ -466,7 +502,7 @@ const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) =>
                             ))}
                             {sessions.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="py-8 text-center text-zinc-600 italic">No sessions recorded yet. Start talking!</td>
+                                    <td colSpan={6} className="py-12 text-center text-zinc-700 font-mono text-xs uppercase tracking-widest">No history available</td>
                                 </tr>
                             )}
                         </tbody>
@@ -476,8 +512,6 @@ const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) =>
         </div>
     );
 };
-
-// --- AGENT BUILDERS ---
 
 const TextAgentBuilder: React.FC<{
     savedConfigs: AgentConfiguration[];
@@ -513,7 +547,6 @@ const TextAgentBuilder: React.FC<{
     const handleSend = async () => {
         if (!input.trim()) return;
 
-        // Initialize session on first message
         if (!sessionId) {
             setSessionId(Date.now().toString());
             setStartTime(Date.now());
@@ -586,7 +619,6 @@ const TextAgentBuilder: React.FC<{
         };
 
         onSessionComplete(session);
-        // Reset
         setMessages([]);
         setSessionId(null);
         setStartTime(null);
@@ -595,8 +627,8 @@ const TextAgentBuilder: React.FC<{
     };
 
     return (
-        <div className="flex h-full gap-6">
-            <div className="w-80 flex flex-col gap-6 shrink-0 overflow-y-auto pr-2 pb-10">
+        <div className="flex h-full gap-10">
+            <div className="w-96 flex flex-col gap-8 shrink-0 overflow-y-auto pr-4 pb-10 custom-scrollbar border-r-2 border-zinc-900">
                 <ConfigManager 
                     savedConfigs={savedConfigs} 
                     setSavedConfigs={setSavedConfigs} 
@@ -609,83 +641,104 @@ const TextAgentBuilder: React.FC<{
                     tenantId={tenantId}
                 />
 
-                <div className="space-y-4">
+                <div className="space-y-8">
                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Agent Name</label>
-                        <input value={agentName} onChange={e => setAgentName(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-2 text-sm text-white focus:border-lime-400 focus:outline-none" />
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Agent Identity</label>
+                        <input value={agentName} onChange={e => setAgentName(e.target.value)} className="w-full bg-black border-2 border-zinc-800 p-4 text-sm text-white font-bold focus:border-lime-400 focus:outline-none transition-colors" />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Model</label>
-                        <select value={model} onChange={e => setModel(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-2 text-sm text-white focus:border-lime-400">
-                            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                            <option value="gemini-3-pro-preview">Gemini 3.0 Pro (Thinking)</option>
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">AI Model</label>
+                        <select value={model} onChange={e => setModel(e.target.value)} className="w-full bg-black border-2 border-zinc-800 p-4 text-sm text-white font-bold focus:border-lime-400 focus:outline-none transition-colors appearance-none uppercase tracking-wide">
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast)</option>
+                            <option value="gemini-3-pro-preview">Gemini 3.0 Pro (Reasoning)</option>
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">System Instruction</label>
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">System Instruction</label>
                         <textarea 
                             value={instruction}
                             onChange={(e) => setInstruction(e.target.value)}
-                            className="w-full h-48 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y"
-                            placeholder="Enter the system prompt here..."
+                            className="w-full h-48 bg-black border-2 border-zinc-800 p-4 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y transition-colors font-mono leading-relaxed"
+                            placeholder="Define behavior, tone, and constraints..."
                         />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Temperature: {temp}</label>
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Creativity (Temp)</label>
+                            <span className="text-xs font-mono text-lime-400 font-bold bg-zinc-900 px-2 py-0.5 border border-zinc-800">{temp}</span>
+                        </div>
                         <input 
                             type="range" min="0" max="1" step="0.1" 
                             value={temp} onChange={(e) => setTemp(parseFloat(e.target.value))}
-                            className="w-full accent-lime-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                            className="w-full accent-lime-400 bg-zinc-800 h-1.5 appearance-none cursor-pointer rounded-none"
                         />
                     </div>
                     <KnowledgeBaseConfig sources={knowledgeSources} setSources={setKnowledgeSources} />
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col bg-zinc-900 border-2 border-zinc-800 shadow-[4px_4px_0px_0px_#27272a] h-[600px] relative">
+            <div className="flex-1 flex flex-col bg-zinc-950 border-2 border-zinc-800 shadow-[8px_8px_0px_0px_#000] h-[750px] relative overflow-hidden">
                 {/* Header */}
-                <div className="bg-zinc-950 border-b border-zinc-800 p-3 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                         <div className={`w-2 h-2 rounded-full ${sessionId ? 'bg-lime-400 animate-pulse' : 'bg-zinc-700'}`}></div>
-                         <span className="text-xs font-bold text-zinc-300 uppercase">{sessionId ? 'Session Active' : 'Idle'}</span>
+                <div className="bg-black border-b-2 border-zinc-800 p-6 flex justify-between items-center z-10">
+                    <div className="flex items-center gap-4">
+                         <div className={`w-3 h-3 rounded-full border border-black shadow-sm ${sessionId ? 'bg-lime-400 animate-pulse shadow-[0_0_8px_rgba(163,230,53,0.5)]' : 'bg-zinc-800'}`}></div>
+                         <div className="flex flex-col">
+                             <span className="text-sm font-black text-white uppercase tracking-tight">{agentName}</span>
+                             <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">{model}</span>
+                         </div>
                     </div>
                     {sessionId && (
-                         <button onClick={handleEndSession} className="text-[10px] font-bold uppercase bg-red-900/30 text-red-400 border border-red-900 px-3 py-1 hover:bg-red-900 hover:text-white transition-colors">
+                         <button onClick={handleEndSession} className="text-[10px] font-black uppercase bg-red-900/10 text-red-500 border border-red-900/50 px-4 py-2 hover:bg-red-500 hover:text-white transition-all tracking-widest hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]">
                              End Session
                          </button>
                     )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-950/50">
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-black/50 scrollbar-thin scrollbar-thumb-zinc-800 relative">
+                     <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none"></div>
                     {messages.length === 0 && (
-                        <div className="h-full flex items-center justify-center text-zinc-600 font-mono text-sm uppercase">
-                            Configure agent and start chatting
+                        <div className="h-full flex flex-col items-center justify-center text-zinc-700 font-mono text-xs uppercase tracking-[0.2em] opacity-80">
+                            <Bot className="w-16 h-16 mb-6 opacity-30" />
+                            System Initialized // Waiting for input
                         </div>
                     )}
                     {messages.map(msg => (
-                        <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] p-3 text-sm ${
+                        <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}>
+                            <div className={`max-w-[80%] p-5 text-sm font-medium leading-relaxed ${
                                 msg.role === 'user' 
-                                ? 'bg-zinc-800 text-white border border-zinc-700' 
-                                : 'bg-lime-900/20 text-lime-100 border border-lime-500/30'
+                                ? 'bg-zinc-900 text-white border-2 border-zinc-800 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]' 
+                                : 'bg-lime-400 text-black border-2 border-lime-500 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'
                             }`}>
                                 {msg.text}
                             </div>
                         </div>
                     ))}
-                    {isTyping && <div className="text-xs text-zinc-500 animate-pulse">Agent is typing...</div>}
+                    {isTyping && (
+                        <div className="flex justify-start">
+                             <div className="bg-black border border-zinc-800 p-4 flex gap-1.5 shadow-md">
+                                 <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce"></span>
+                                 <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce delay-100"></span>
+                                 <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce delay-200"></span>
+                             </div>
+                        </div>
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
-                <div className="p-4 bg-zinc-900 border-t-2 border-zinc-800 flex gap-2">
+                
+                <div className="p-6 bg-black border-t-2 border-zinc-800 flex gap-0 z-10">
                     <input 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        className="flex-1 bg-zinc-950 border border-zinc-800 p-3 text-white focus:outline-none focus:border-lime-400"
-                        placeholder="Type a message..."
+                        className="flex-1 bg-zinc-950 border-2 border-zinc-800 border-r-0 p-5 text-white focus:outline-none focus:border-lime-400 focus:border-r-2 transition-colors font-medium placeholder:text-zinc-700 font-mono"
+                        placeholder="ENTER_COMMAND..."
                     />
-                    <button onClick={handleSend} disabled={!input || isTyping} className="bg-lime-400 text-black px-4 font-bold hover:bg-lime-300 disabled:opacity-50">
-                        <Send className="w-5 h-5" />
+                    <button 
+                        onClick={handleSend} 
+                        disabled={!input || isTyping} 
+                        className="bg-lime-400 text-black px-8 font-black border-2 border-lime-500 hover:bg-white hover:border-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <Send className="w-5 h-5 stroke-[2.5]" />
                     </button>
                 </div>
 
@@ -744,11 +797,9 @@ const VoiceAgentBuilder: React.FC<{
             let nextStartTime = 0;
             const sources = new Set<AudioBufferSourceNode>();
 
-            // Init Session Tracking
             setSessionId(Date.now().toString());
             setStartTime(Date.now());
 
-            // Use the gemini-2.5-flash-native-audio-preview-09-2025 model for Live API
             const sessionPromise = ai.live.connect({
                 model: 'gemini-2.5-flash-native-audio-preview-09-2025',
                 config: {
@@ -814,13 +865,12 @@ const VoiceAgentBuilder: React.FC<{
                 }
             });
 
-            // Cleanup function
             closeSessionRef.current = () => {
                 sessionPromise.then(s => s.close());
                 inputAudioContext.close();
                 outputAudioContext.close();
                 stream.getTracks().forEach(t => t.stop());
-                handleDisconnect(); // Trigger logic
+                handleDisconnect(); 
             };
 
         } catch (err) {
@@ -868,8 +918,8 @@ const VoiceAgentBuilder: React.FC<{
     };
 
     return (
-        <div className="flex h-full gap-6">
-            <div className="w-80 flex flex-col gap-6 shrink-0 overflow-y-auto pr-2 pb-10">
+        <div className="flex h-full gap-10">
+            <div className="w-96 flex flex-col gap-8 shrink-0 overflow-y-auto pr-4 pb-10 custom-scrollbar border-r-2 border-zinc-900">
                  <ConfigManager 
                     savedConfigs={savedConfigs} 
                     setSavedConfigs={setSavedConfigs} 
@@ -890,14 +940,14 @@ const VoiceAgentBuilder: React.FC<{
                     agentName={agentName}
                     tenantId={tenantId}
                 />
-                 <div className="space-y-4">
+                 <div className="space-y-8">
                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Agent Name</label>
-                        <input value={agentName} onChange={e => setAgentName(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-2 text-sm text-white focus:border-lime-400 focus:outline-none" />
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Agent Name</label>
+                        <input value={agentName} onChange={e => setAgentName(e.target.value)} className="w-full bg-black border-2 border-zinc-800 p-4 text-sm text-white font-bold focus:border-lime-400 focus:outline-none transition-colors" />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Voice Personality</label>
-                        <select value={voiceName} onChange={e => setVoiceName(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-2 text-sm text-white focus:border-lime-400">
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Voice Model</label>
+                        <select value={voiceName} onChange={e => setVoiceName(e.target.value)} className="w-full bg-black border-2 border-zinc-800 p-4 text-sm text-white font-bold focus:border-lime-400 transition-colors uppercase tracking-wide">
                             <option value="Puck">Puck (Male, Smooth)</option>
                             <option value="Charon">Charon (Male, Deep)</option>
                             <option value="Kore">Kore (Female, Warm)</option>
@@ -906,55 +956,54 @@ const VoiceAgentBuilder: React.FC<{
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">System Instruction</label>
+                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">System Instruction</label>
                         <textarea 
                             value={instruction}
                             onChange={(e) => setInstruction(e.target.value)}
-                            className="w-full h-32 bg-zinc-950 border border-zinc-800 p-2 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y"
-                            placeholder="Enter the voice agent's persona and instructions..."
+                            className="w-full h-36 bg-black border-2 border-zinc-800 p-4 text-sm text-zinc-300 focus:border-lime-400 focus:outline-none resize-y transition-colors leading-relaxed font-mono"
+                            placeholder="Define persona..."
                         />
                     </div>
                     
-                    {/* Advanced Voice Settings */}
-                    <div className="bg-zinc-900 border border-zinc-800 p-3 space-y-3">
-                        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-zinc-800">
-                             <Settings2 className="w-3 h-3 text-lime-400" />
-                             <span className="text-[10px] font-bold uppercase text-zinc-400">Advanced Settings</span>
+                    <div className="bg-zinc-950 border-2 border-zinc-800 p-6 space-y-6 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2 pb-4 border-b-2 border-zinc-800">
+                             <Settings2 className="w-4 h-4 text-lime-400" />
+                             <span className="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em]">Voice Parameters</span>
                         </div>
                         
                         <div>
-                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-1">
-                                <span>Temperature</span>
-                                <span>{temp}</span>
+                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-3">
+                                <span>Creativity</span>
+                                <span className="text-lime-400 font-mono">{temp}</span>
                             </div>
                             <input 
                                 type="range" min="0" max="1" step="0.1" 
                                 value={temp} onChange={(e) => setTemp(parseFloat(e.target.value))}
-                                className="w-full accent-lime-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                                className="w-full accent-lime-400 bg-zinc-800 h-1.5 appearance-none rounded-none cursor-pointer"
                             />
                         </div>
 
                         <div>
-                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-1">
+                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-3">
                                 <span>Pitch</span>
-                                <span>{pitch}</span>
+                                <span className="text-cyan-400 font-mono">{pitch}</span>
                             </div>
                             <input 
                                 type="range" min="-20" max="20" step="1" 
                                 value={pitch} onChange={(e) => setPitch(parseInt(e.target.value))}
-                                className="w-full accent-cyan-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                                className="w-full accent-cyan-400 bg-zinc-800 h-1.5 appearance-none rounded-none cursor-pointer"
                             />
                         </div>
 
                          <div>
-                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-1">
-                                <span>Speaking Rate</span>
-                                <span>{speakingRate}x</span>
+                            <div className="flex justify-between text-[10px] font-bold text-zinc-500 uppercase mb-3">
+                                <span>Speed</span>
+                                <span className="text-pink-400 font-mono">{speakingRate}x</span>
                             </div>
                             <input 
                                 type="range" min="0.5" max="2.0" step="0.1" 
                                 value={speakingRate} onChange={(e) => setSpeakingRate(parseFloat(e.target.value))}
-                                className="w-full accent-pink-400 bg-zinc-800 h-1 appearance-none rounded-lg cursor-pointer"
+                                className="w-full accent-pink-400 bg-zinc-800 h-1.5 appearance-none rounded-none cursor-pointer"
                             />
                         </div>
                     </div>
@@ -963,33 +1012,36 @@ const VoiceAgentBuilder: React.FC<{
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col bg-zinc-900 border-2 border-zinc-800 shadow-[4px_4px_0px_0px_#27272a] h-[600px] relative overflow-hidden">
+            <div className="flex-1 flex flex-col bg-black border-2 border-zinc-800 shadow-[8px_8px_0px_0px_#000] h-[750px] relative overflow-hidden">
                 {/* Visualizer Background */}
-                <div className="absolute inset-0 flex items-center justify-center gap-2 pointer-events-none opacity-20">
-                     {[...Array(20)].map((_, i) => (
+                <div className="absolute inset-0 flex items-center justify-center gap-4 pointer-events-none opacity-20">
+                     {[...Array(16)].map((_, i) => (
                          <div 
                             key={i} 
-                            className="w-4 bg-lime-400 transition-all duration-75"
-                            style={{ height: `${Math.max(10, Math.random() * (isConnected ? audioVolume * 2 + 20 : 10))}%` }}
+                            className="w-4 bg-lime-400 transition-all duration-75 rounded-none"
+                            style={{ height: `${Math.max(5, Math.random() * (isConnected ? audioVolume * 4 + 10 : 5))}%` }}
                          />
                      ))}
                 </div>
 
-                <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-8 text-center">
-                    <div className={`w-32 h-32 rounded-full border-4 flex items-center justify-center mb-8 transition-all duration-300 ${isConnected ? 'border-lime-400 shadow-[0_0_30px_rgba(163,230,53,0.3)]' : 'border-zinc-700'}`}>
-                        {isConnected ? <Mic2 className="w-12 h-12 text-lime-400 animate-pulse" /> : <Mic className="w-12 h-12 text-zinc-600" />}
+                <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-12 text-center">
+                    <div className={`w-48 h-48 border-[6px] flex items-center justify-center mb-12 transition-all duration-300 relative ${isConnected ? 'border-lime-400 shadow-[0_0_60px_rgba(163,230,53,0.2)] bg-black' : 'border-zinc-800 bg-zinc-950'}`}>
+                        {isConnected && (
+                             <div className="absolute inset-0 border-[6px] border-lime-400 animate-ping opacity-30"></div>
+                        )}
+                        {isConnected ? <Mic2 className="w-20 h-20 text-lime-400 animate-pulse" /> : <Mic className="w-20 h-20 text-zinc-800" />}
                     </div>
                     
-                    <h2 className="text-2xl font-black text-white uppercase mb-2">{isConnected ? 'Agent Active' : 'Ready to Connect'}</h2>
-                    <p className="text-zinc-500 font-mono text-sm max-w-md mb-8">
+                    <h2 className="text-5xl font-black text-white uppercase mb-6 tracking-tighter">{isConnected ? 'Link Active' : 'Offline'}</h2>
+                    <p className="text-zinc-500 font-mono text-sm max-w-md mb-16 uppercase tracking-wide">
                         {isConnected 
-                            ? "Listening... Speak naturally to the agent. Silence will trigger a response." 
-                            : "Configure your agent's voice and personality, then connect to start a real-time conversation."}
+                            ? "Voice Channel Open. Latency < 200ms." 
+                            : "Initialize Gemini Live API connection to begin real-time voice session."}
                     </p>
 
                     {error && (
-                        <div className="mb-4 flex items-center gap-2 text-red-400 text-xs font-bold uppercase bg-red-900/20 px-4 py-2 border border-red-500/50">
-                            <AlertCircle className="w-4 h-4" />
+                        <div className="mb-10 flex items-center gap-3 text-red-500 text-xs font-black uppercase bg-red-950/20 px-8 py-4 border-2 border-red-900 shadow-md tracking-wider">
+                            <AlertCircle className="w-5 h-5" />
                             {error}
                         </div>
                     )}
@@ -997,18 +1049,18 @@ const VoiceAgentBuilder: React.FC<{
                     {!isConnected ? (
                         <button 
                             onClick={connectLive}
-                            className="bg-lime-400 text-black px-8 py-4 font-black uppercase tracking-wider text-lg border-2 border-lime-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(163,230,53,0.4)] transition-all flex items-center gap-2"
+                            className="bg-lime-400 text-black px-12 py-6 font-black uppercase tracking-[0.2em] text-lg border-2 border-lime-500 hover:translate-y-[4px] hover:translate-x-[4px] hover:shadow-[4px_4px_0px_0px_rgba(163,230,53,0.5)] shadow-[10px_10px_0px_0px_rgba(163,230,53,0.3)] transition-all flex items-center gap-4 active:translate-y-[8px] active:translate-x-[8px] active:shadow-none"
                         >
-                            <Activity className="w-5 h-5" />
-                            Connect Live API
+                            <Activity className="w-6 h-6 stroke-[3]" />
+                            Connect
                         </button>
                     ) : (
                         <button 
                             onClick={() => closeSessionRef.current?.()} 
-                            className="bg-red-500 text-white px-8 py-4 font-black uppercase tracking-wider text-lg border-2 border-red-600 hover:bg-red-600 transition-all flex items-center gap-2"
+                            className="bg-red-600 text-white px-12 py-6 font-black uppercase tracking-[0.2em] text-lg border-2 border-red-700 hover:bg-red-500 transition-all flex items-center gap-4 shadow-[8px_8px_0px_0px_#7f1d1d] hover:translate-y-[2px] hover:translate-x-[2px] active:shadow-none active:translate-y-[6px] active:translate-x-[6px]"
                         >
-                            <Square className="w-5 h-5 fill-current" />
-                            End Call
+                            <Square className="w-6 h-6 fill-current" />
+                            Terminate
                         </button>
                     )}
                 </div>
@@ -1023,22 +1075,14 @@ const VoiceAgentBuilder: React.FC<{
     );
 };
 
-// --- MAIN WRAPPER ---
-
 interface ConversationsProps {
   tenantId: string;
 }
 
 export const Conversations: React.FC<ConversationsProps> = ({ tenantId }) => {
   const [activeTab, setActiveTab] = useState<'text' | 'voice' | 'analytics'>('text');
-  
-  // Persist configs
   const [savedConfigs, setSavedConfigs] = useLocalStorage<AgentConfiguration[]>('agent_configs', INITIAL_AGENT_CONFIGS);
-  
-  // Persist sessions
   const [sessions, setSessions] = useLocalStorage<AgentSession[]>('agent_sessions', []);
-
-  // Filter for analytics
   const tenantSessions = sessions.filter(s => s.tenantId === tenantId);
 
   const handleSessionComplete = (newSession: AgentSession) => {
@@ -1047,29 +1091,29 @@ export const Conversations: React.FC<ConversationsProps> = ({ tenantId }) => {
 
   return (
     <div className="h-full flex flex-col animate-in fade-in duration-500">
-      <div className="mb-6 bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a] flex justify-between items-center">
+      <div className="mb-6 bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000] flex justify-between items-center">
         <div>
-           <h2 className="text-2xl font-black text-white tracking-tight uppercase mb-1">AI Agents</h2>
-           <p className="text-zinc-500 font-mono text-sm">Deploy custom text and voice bots.</p>
+           <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">AI Agents</h2>
+           <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.2em]">Autonomous Workforce</p>
         </div>
-        <div className="flex bg-zinc-950 border-2 border-zinc-800 p-1">
+        <div className="flex bg-black border-2 border-zinc-800 p-1.5 shadow-sm">
             <button 
                 onClick={() => setActiveTab('text')}
-                className={`px-4 py-2 font-bold uppercase text-xs flex items-center gap-2 transition-all ${activeTab === 'text' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}
+                className={`px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider ${activeTab === 'text' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
             >
-                <MessageSquare className="w-4 h-4" /> Text Agent
+                <MessageSquare className="w-4 h-4" /> Text
             </button>
             <button 
                 onClick={() => setActiveTab('voice')}
-                className={`px-4 py-2 font-bold uppercase text-xs flex items-center gap-2 transition-all ${activeTab === 'voice' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}
+                className={`px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider ${activeTab === 'voice' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
             >
-                <Mic2 className="w-4 h-4" /> Voice Agent
+                <Mic2 className="w-4 h-4" /> Voice
             </button>
             <button 
                 onClick={() => setActiveTab('analytics')}
-                className={`px-4 py-2 font-bold uppercase text-xs flex items-center gap-2 transition-all ${activeTab === 'analytics' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}
+                className={`px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider ${activeTab === 'analytics' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
             >
-                <BarChart3 className="w-4 h-4" /> Performance
+                <BarChart3 className="w-4 h-4" /> Analytics
             </button>
         </div>
       </div>

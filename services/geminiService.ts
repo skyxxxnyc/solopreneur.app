@@ -341,7 +341,6 @@ export const findProspects = async (niche: string, location: string): Promise<Pr
     
     if (!process.env.PICA_PERPLEXITY_CONNECTION_KEY) {
         console.warn("PICA_PERPLEXITY_CONNECTION_KEY not set. Falling back to Gemini mock.");
-        // Fallback for when Pica keys aren't set
         try {
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',

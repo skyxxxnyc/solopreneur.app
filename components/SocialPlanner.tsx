@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SocialPost, SocialPlatform } from '../types';
 import { INITIAL_SOCIAL_POSTS } from '../constants';
@@ -17,33 +18,33 @@ const PostPreview: React.FC<{
         
         const MediaContent = () => {
             if (video) {
-                return <video src={video} controls className="w-full h-auto rounded-xl border border-zinc-800 mb-3 object-cover max-h-80" />;
+                return <video src={video} controls className="w-full h-auto rounded-none border border-zinc-800 mb-3 object-cover max-h-80" />;
             }
             if (image) {
-                return <img src={image} className="w-full h-auto rounded-xl border border-zinc-800 mb-3 object-cover max-h-80" alt="Preview" />;
+                return <img src={image} className="w-full h-auto rounded-none border border-zinc-800 mb-3 object-cover max-h-80" alt="Preview" />;
             }
             return null;
         };
 
         if (platform === 'twitter') {
             return (
-                <div className="bg-black text-white p-4 rounded-xl border border-zinc-800 max-w-md w-full font-sans">
-                    <div className="flex gap-3">
-                        <div className="w-10 h-10 rounded-full bg-lime-400 shrink-0 border border-zinc-700"></div>
+                <div className="bg-black text-white p-8 rounded-none border-2 border-zinc-800 max-w-md w-full font-sans shadow-[8px_8px_0px_0px_#000]">
+                    <div className="flex gap-4">
+                        <div className="w-12 h-12 rounded-full bg-lime-400 shrink-0 border-2 border-white"></div>
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1 mb-0.5">
-                                <span className="font-bold text-sm truncate">The Solopreneur</span>
-                                <span className="text-zinc-500 text-sm truncate">@solopreneur · 1m</span>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="font-black text-[15px] truncate">The Solopreneur</span>
+                                <span className="text-zinc-500 text-[14px] truncate">@solopreneur · 1m</span>
                             </div>
-                            <p className="text-[15px] leading-normal whitespace-pre-wrap mb-3 text-zinc-200">
-                                {fullText || <span className="text-zinc-600 italic">Start writing...</span>}
+                            <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 text-white font-medium">
+                                {fullText || <span className="text-zinc-700 italic">Start writing...</span>}
                             </p>
                             <MediaContent />
-                            <div className="flex justify-between text-zinc-500 max-w-[85%]">
-                                <MessageCircle className="w-4 h-4" />
-                                <Repeat2 className="w-4 h-4" />
-                                <Heart className="w-4 h-4" />
-                                <Share2 className="w-4 h-4" />
+                            <div className="flex justify-between text-zinc-500 max-w-[85%] mt-4">
+                                <MessageCircle className="w-5 h-5 hover:text-blue-400 transition-colors" />
+                                <Repeat2 className="w-5 h-5 hover:text-green-400 transition-colors" />
+                                <Heart className="w-5 h-5 hover:text-pink-400 transition-colors" />
+                                <Share2 className="w-5 h-5 hover:text-blue-400 transition-colors" />
                             </div>
                         </div>
                     </div>
@@ -53,38 +54,38 @@ const PostPreview: React.FC<{
 
         if (platform === 'linkedin') {
             return (
-                <div className="bg-[#1b1f23] text-white rounded-lg border border-zinc-700 max-w-md w-full font-sans overflow-hidden">
-                    <div className="p-3 flex gap-2">
-                         <div className="w-10 h-10 rounded-sm bg-lime-400 shrink-0"></div>
+                <div className="bg-[#1b1f23] text-white rounded-none border-2 border-zinc-700 max-w-md w-full font-sans overflow-hidden shadow-[8px_8px_0px_0px_#000]">
+                    <div className="p-4 flex gap-3 border-b border-zinc-800">
+                         <div className="w-12 h-12 bg-lime-400 shrink-0 border border-white/10"></div>
                          <div>
                              <div className="font-bold text-sm text-white/90">The Solopreneur</div>
                              <div className="text-xs text-zinc-400">Building empires one pixel at a time</div>
-                             <div className="text-xs text-zinc-400 flex items-center gap-1">1m • <span className="text-[10px]">🌐</span></div>
+                             <div className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">1m • <span className="text-[10px]">🌐</span></div>
                          </div>
                          <MoreHorizontal className="w-5 h-5 text-zinc-400 ml-auto" />
                     </div>
-                    <div className="px-3 pb-2 text-sm text-white/90 whitespace-pre-wrap">
+                    <div className="px-4 py-3 text-sm text-white/90 whitespace-pre-wrap leading-relaxed">
                          {fullText || <span className="text-zinc-500 italic">Start writing...</span>}
                     </div>
                     {video ? (
-                        <video src={video} controls className="w-full h-auto border-y border-zinc-800 object-cover max-h-80" />
+                        <video src={video} controls className="w-full h-auto border-y border-zinc-700/50 object-cover max-h-80" />
                     ) : image && (
-                        <img src={image} className="w-full h-auto border-y border-zinc-800 object-cover max-h-80" alt="Preview" />
+                        <img src={image} className="w-full h-auto border-y border-zinc-700/50 object-cover max-h-80" alt="Preview" />
                     )}
-                    <div className="p-2 flex justify-between border-t border-zinc-700 px-4">
-                        <div className="flex flex-col items-center gap-1 text-zinc-400">
+                    <div className="p-3 flex justify-between border-t border-zinc-700/50 px-6 bg-[#1b1f23]">
+                        <div className="flex flex-col items-center gap-1 text-zinc-400 hover:bg-zinc-800/50 p-1 rounded transition-colors cursor-pointer">
                             <ThumbsUp className="w-5 h-5" />
                             <span className="text-[10px] font-bold">Like</span>
                         </div>
-                         <div className="flex flex-col items-center gap-1 text-zinc-400">
+                         <div className="flex flex-col items-center gap-1 text-zinc-400 hover:bg-zinc-800/50 p-1 rounded transition-colors cursor-pointer">
                             <MessageCircle className="w-5 h-5" />
                             <span className="text-[10px] font-bold">Comment</span>
                         </div>
-                         <div className="flex flex-col items-center gap-1 text-zinc-400">
+                         <div className="flex flex-col items-center gap-1 text-zinc-400 hover:bg-zinc-800/50 p-1 rounded transition-colors cursor-pointer">
                             <Repeat2 className="w-5 h-5" />
                             <span className="text-[10px] font-bold">Repost</span>
                         </div>
-                         <div className="flex flex-col items-center gap-1 text-zinc-400">
+                         <div className="flex flex-col items-center gap-1 text-zinc-400 hover:bg-zinc-800/50 p-1 rounded transition-colors cursor-pointer">
                             <Send className="w-5 h-5" />
                             <span className="text-[10px] font-bold">Send</span>
                         </div>
@@ -95,9 +96,9 @@ const PostPreview: React.FC<{
 
         if (platform === 'instagram') {
              return (
-                <div className="bg-black text-white rounded-lg border border-zinc-800 max-w-sm w-full font-sans overflow-hidden">
-                    <div className="p-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                <div className="bg-black text-white rounded-none border-2 border-zinc-800 max-w-sm w-full font-sans overflow-hidden shadow-[8px_8px_0px_0px_#000]">
+                    <div className="p-3 flex items-center justify-between border-b border-zinc-800">
+                        <div className="flex items-center gap-3">
                              <div className="w-8 h-8 rounded-full bg-lime-400 border border-zinc-700"></div>
                              <span className="text-sm font-bold">the.solopreneur</span>
                         </div>
@@ -109,19 +110,19 @@ const PostPreview: React.FC<{
                          ) : image ? (
                              <img src={image} className="w-full h-full object-cover" alt="Preview" />
                          ) : (
-                             <span className="text-zinc-700 text-xs uppercase font-mono">Media Preview</span>
+                             <span className="text-zinc-700 text-xs uppercase font-mono tracking-widest">Media Preview</span>
                          )}
                     </div>
-                    <div className="p-3">
-                        <div className="flex justify-between mb-2">
+                    <div className="p-4">
+                        <div className="flex justify-between mb-4">
                             <div className="flex gap-4">
-                                <Heart className="w-6 h-6" />
-                                <MessageCircle className="w-6 h-6" />
-                                <Send className="w-6 h-6" />
+                                <Heart className="w-6 h-6 hover:text-zinc-400 cursor-pointer" />
+                                <MessageCircle className="w-6 h-6 hover:text-zinc-400 cursor-pointer" />
+                                <Send className="w-6 h-6 hover:text-zinc-400 cursor-pointer" />
                             </div>
-                            <Bookmark className="w-6 h-6" />
+                            <Bookmark className="w-6 h-6 hover:text-zinc-400 cursor-pointer" />
                         </div>
-                        <div className="text-sm">
+                        <div className="text-sm leading-relaxed">
                             <span className="font-bold mr-2">the.solopreneur</span>
                              {fullText || <span className="text-zinc-600 italic">Start writing...</span>}
                         </div>
@@ -134,8 +135,8 @@ const PostPreview: React.FC<{
     return (
         <div className="flex flex-col items-center">
              {renderContent()}
-             <div className="mt-4 flex items-center gap-2 text-zinc-500 text-xs font-mono uppercase">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+             <div className="mt-8 flex items-center gap-3 text-zinc-500 text-[10px] font-mono uppercase tracking-[0.2em] border border-zinc-800 px-4 py-1.5 bg-black">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                 Live {platform} Preview
              </div>
         </div>
@@ -154,10 +155,8 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
     
     const tenantPosts = posts.filter(p => p.tenantId === tenantId);
     
-    // Calendar State
     const [currentCalendarDate, setCurrentCalendarDate] = useState(new Date());
 
-    // Editor State
     const [platform, setPlatform] = useState<SocialPlatform>('linkedin');
     const [topic, setTopic] = useState('');
     const [content, setContent] = useState('');
@@ -249,13 +248,12 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
 
     const getPlatformColor = (p: SocialPlatform) => {
         switch(p) {
-            case 'twitter': return 'text-sky-400 border-sky-400';
-            case 'linkedin': return 'text-blue-500 border-blue-500';
-            case 'instagram': return 'text-pink-500 border-pink-500';
+            case 'twitter': return 'text-sky-400 border-sky-400 hover:bg-sky-900/20';
+            case 'linkedin': return 'text-blue-500 border-blue-500 hover:bg-blue-900/20';
+            case 'instagram': return 'text-pink-500 border-pink-500 hover:bg-pink-900/20';
         }
     };
 
-    // Calendar Helpers
     const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -267,7 +265,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
         const days = [];
 
         for (let i = 0; i < firstDay; i++) {
-            days.push(<div key={`empty-${i}`} className="min-h-[120px] bg-zinc-950/50 border border-zinc-800"></div>);
+            days.push(<div key={`empty-${i}`} className="min-h-[140px] bg-zinc-950 border-r border-b border-zinc-800/30"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -276,18 +274,19 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
             const isToday = new Date().toDateString() === dateStr;
 
             days.push(
-                <div key={day} className={`min-h-[120px] bg-zinc-900/30 border border-zinc-800 p-2 ${isToday ? 'bg-zinc-800/50' : ''}`}>
-                    <div className={`text-right text-xs font-mono font-bold mb-2 ${isToday ? 'text-lime-400' : 'text-zinc-500'}`}>
+                <div key={day} className={`min-h-[140px] border-r border-b border-zinc-800/30 p-3 hover:bg-zinc-900/50 transition-colors group relative ${isToday ? 'bg-zinc-900/30' : ''}`}>
+                    <div className={`text-right text-xs font-mono font-bold mb-4 ${isToday ? 'text-lime-400' : 'text-zinc-600 group-hover:text-zinc-400'}`}>
                         {day}
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                         {daysPosts.map(post => (
-                            <div key={post.id} className={`flex items-center gap-1 p-1.5 border text-[10px] font-bold uppercase truncate cursor-pointer hover:opacity-80 transition-opacity ${getPlatformColor(post.platform)} bg-zinc-950`}>
+                            <div key={post.id} className={`flex items-center gap-2 p-1.5 border-l-[3px] bg-zinc-900 text-[10px] font-bold uppercase truncate cursor-pointer hover:brightness-125 transition-all shadow-sm ${getPlatformColor(post.platform)}`}>
                                 {getPlatformIcon(post.platform)}
-                                <span className="truncate">{post.content}</span>
+                                <span className="truncate tracking-wide">{post.content}</span>
                             </div>
                         ))}
                     </div>
+                    {isToday && <div className="absolute top-4 left-4 w-1.5 h-1.5 bg-lime-400 rounded-full shadow-[0_0_8px_rgba(163,230,53,0.8)]"></div>}
                 </div>
             );
         }
@@ -303,56 +302,55 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
 
     return (
         <div className="h-full flex flex-col animate-in fade-in duration-500">
-             <div className="mb-6 bg-zinc-900 border-2 border-zinc-800 p-6 shadow-[4px_4px_0px_0px_#27272a] flex justify-between items-center">
+             <div className="mb-6 bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000] flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-black text-white tracking-tight uppercase mb-1">Social Planner</h2>
-                    <p className="text-zinc-500 font-mono text-sm">Schedule and generate content with AI.</p>
+                    <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">Social Planner</h2>
+                    <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.2em]">Strategy & Distribution</p>
                 </div>
                 {!isCreating && (
-                    <div className="flex items-center gap-4">
-                        <div className="flex bg-zinc-950 border-2 border-zinc-800 p-1">
+                    <div className="flex items-center gap-6">
+                        <div className="flex bg-black border-2 border-zinc-800 p-1">
                             <button 
                                 onClick={() => setViewMode('calendar')}
-                                className={`p-2 transition-all ${viewMode === 'calendar' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}
+                                className={`p-3 transition-all ${viewMode === 'calendar' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
                             >
                                 <CalendarIcon className="w-5 h-5" />
                             </button>
                             <button 
                                 onClick={() => setViewMode('list')}
-                                className={`p-2 transition-all ${viewMode === 'list' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}
+                                className={`p-3 transition-all ${viewMode === 'list' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
                             >
                                 <ListIcon className="w-5 h-5" />
                             </button>
                         </div>
                         <button 
                             onClick={() => setIsCreating(true)}
-                            className="flex items-center gap-2 bg-lime-400 text-black px-6 py-3 font-bold border-2 border-lime-500 hover:translate-y-1 hover:shadow-none shadow-[4px_4px_0px_0px_#3f3f46] transition-all"
+                            className="flex items-center gap-3 bg-lime-400 text-black px-8 py-4 font-black uppercase tracking-wider border-2 border-lime-500 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#000] shadow-[6px_6px_0px_0px_#000] transition-all"
                         >
-                            <Plus className="w-5 h-5" />
-                            CREATE POST
+                            <Plus className="w-5 h-5 stroke-[3]" />
+                            Create Post
                         </button>
                     </div>
                 )}
             </div>
 
-            <div className="flex-1 flex gap-0 overflow-hidden">
-                {/* Main View Area (List or Calendar) */}
+            <div className="flex-1 flex gap-0 overflow-hidden shadow-[8px_8px_0px_0px_#000] border-2 border-zinc-800">
                 {!isCreating ? (
-                    <div className="flex-1 overflow-hidden flex flex-col">
+                    <div className="flex-1 overflow-hidden flex flex-col bg-black">
                         {viewMode === 'calendar' ? (
-                            <div className="flex-1 flex flex-col bg-zinc-900 border-2 border-zinc-800 shadow-[4px_4px_0px_0px_#27272a] overflow-hidden">
+                            <div className="flex-1 flex flex-col overflow-hidden">
                                 {/* Calendar Header */}
-                                <div className="p-4 border-b-2 border-zinc-800 flex justify-between items-center bg-zinc-950">
-                                    <div className="flex items-center gap-4">
-                                        <button onClick={() => changeMonth(-1)} className="p-1 hover:text-lime-400 text-zinc-400 transition-colors"><ChevronLeft className="w-6 h-6" /></button>
-                                        <h3 className="text-xl font-black text-white uppercase w-48 text-center">
+                                <div className="p-8 border-b-2 border-zinc-800 flex justify-between items-center bg-zinc-950">
+                                    <div className="flex items-center gap-8">
+                                        <button onClick={() => changeMonth(-1)} className="p-3 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors border-2 border-transparent hover:border-zinc-800"><ChevronLeft className="w-5 h-5" /></button>
+                                        <h3 className="text-2xl font-black text-white uppercase w-72 text-center tracking-tight italic">
                                             {currentCalendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                                         </h3>
-                                        <button onClick={() => changeMonth(1)} className="p-1 hover:text-lime-400 text-zinc-400 transition-colors"><ChevronRight className="w-6 h-6" /></button>
+                                        <button onClick={() => changeMonth(1)} className="p-3 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors border-2 border-transparent hover:border-zinc-800"><ChevronRight className="w-5 h-5" /></button>
                                     </div>
                                     <button 
                                         onClick={() => setCurrentCalendarDate(new Date())}
-                                        className="text-xs font-bold uppercase text-zinc-500 hover:text-white"
+                                        className="text-xs font-bold uppercase text-zinc-500 hover:text-lime-400 border-b-2 border-transparent hover:border-lime-400 transition-all tracking-wider pb-1"
                                     >
                                         Jump to Today
                                     </button>
@@ -361,58 +359,61 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                 {/* Days Header */}
                                 <div className="grid grid-cols-7 bg-zinc-950 border-b-2 border-zinc-800">
                                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                        <div key={day} className="p-2 text-center text-xs font-black text-zinc-600 uppercase border-r border-zinc-800 last:border-r-0">
+                                        <div key={day} className="p-4 text-center text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] border-r-2 border-zinc-800 last:border-r-0">
                                             {day}
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Calendar Grid */}
-                                <div className="flex-1 grid grid-cols-7 overflow-y-auto bg-zinc-950">
+                                <div className="flex-1 grid grid-cols-7 overflow-y-auto bg-black">
                                     {renderCalendar()}
                                 </div>
                             </div>
                         ) : (
-                            // LIST VIEW
-                             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-                                <h3 className="text-xs font-black text-zinc-500 uppercase tracking-wider mb-4">Upcoming Schedule</h3>
+                             <div className="flex-1 overflow-y-auto space-y-6 p-8">
+                                <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] mb-6 px-1">Upcoming Content Queue</h3>
                                 {tenantPosts.sort((a,b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()).map(post => (
-                                    <div key={post.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 hover:border-lime-400 transition-colors group flex gap-6 shadow-[4px_4px_0px_0px_#27272a]">
+                                    <div key={post.id} className="bg-zinc-900 border-2 border-zinc-800 p-8 hover:border-lime-400 transition-all group flex gap-10 shadow-[6px_6px_0px_0px_#000] hover:translate-x-1">
                                         {/* Date Badge */}
-                                        <div className="flex flex-col items-center justify-center p-4 bg-zinc-950 border border-zinc-800 w-24 h-24 shrink-0">
-                                            <span className="text-xs text-zinc-500 font-bold uppercase">{new Date(post.scheduledDate).toLocaleString('default', { month: 'short' })}</span>
-                                            <span className="text-3xl text-white font-black">{new Date(post.scheduledDate).getDate()}</span>
-                                            <span className="text-[10px] text-zinc-600 font-mono mt-1">{new Date(post.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                        <div className="flex flex-col items-center justify-center p-0 bg-black border-2 border-zinc-800 w-28 h-28 shrink-0 shadow-sm">
+                                            <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] pt-3 border-b-2 border-zinc-800 w-full text-center pb-2">{new Date(post.scheduledDate).toLocaleString('default', { month: 'short' })}</span>
+                                            <span className="text-4xl text-white font-black flex-1 flex items-center">{new Date(post.scheduledDate).getDate()}</span>
                                         </div>
                                         
                                         {/* Content */}
                                         <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className={`inline-flex items-center gap-2 px-2 py-1 border text-[10px] font-bold uppercase ${getPlatformColor(post.platform)}`}>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className={`inline-flex items-center gap-3 px-4 py-1.5 border-2 text-[10px] font-black uppercase tracking-wide ${getPlatformColor(post.platform)}`}>
                                                     {getPlatformIcon(post.platform)}
                                                     {post.platform}
                                                 </div>
                                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => setPosts(posts.filter(p => p.id !== post.id))} className="text-zinc-500 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
+                                                    <button onClick={() => setPosts(posts.filter(p => p.id !== post.id))} className="text-zinc-600 hover:text-red-500 transition-colors p-2 hover:bg-zinc-800"><Trash2 className="w-5 h-5"/></button>
                                                 </div>
                                             </div>
-                                            <p className="text-zinc-300 text-sm mb-3 line-clamp-2">{post.content}</p>
-                                            {post.image && (
-                                                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase">
-                                                    <ImageIcon className="w-3 h-3" /> Includes Image
+                                            <p className="text-white text-base mb-6 line-clamp-2 leading-relaxed font-bold">{post.content}</p>
+                                            <div className="flex gap-4">
+                                                {post.image && (
+                                                    <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono uppercase bg-black px-3 py-1.5 border border-zinc-800">
+                                                        <ImageIcon className="w-3 h-3 text-purple-400" /> Image Asset
+                                                    </div>
+                                                )}
+                                                {post.video && (
+                                                    <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono uppercase bg-black px-3 py-1.5 border border-zinc-800">
+                                                        <Video className="w-3 h-3 text-cyan-400" /> Video Asset
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase ml-auto">
+                                                    <Clock className="w-3 h-3" /> {new Date(post.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                                 </div>
-                                            )}
-                                            {post.video && (
-                                                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase">
-                                                    <Video className="w-3 h-3" /> Includes Video
-                                                </div>
-                                            )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                                 {tenantPosts.length === 0 && (
-                                    <div className="p-12 text-center border-2 border-dashed border-zinc-800 text-zinc-500 font-mono uppercase">
-                                        No upcoming posts scheduled.
+                                    <div className="p-24 text-center border-2 border-dashed border-zinc-800 text-zinc-700 font-mono uppercase text-sm tracking-[0.2em]">
+                                        Queue Empty // Add content to begin
                                     </div>
                                 )}
                             </div>
@@ -420,12 +421,12 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                     </div>
                 ) : (
                     // PREVIEW AREA (When Creating)
-                    <div className="flex-1 bg-zinc-950 relative flex flex-col items-center justify-center p-8 border-r-2 border-zinc-800">
-                        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                        <h3 className="absolute top-6 left-6 text-xs font-black text-zinc-500 uppercase tracking-wider flex items-center gap-2">
-                            <Eye className="w-4 h-4" /> Live Preview
+                    <div className="flex-1 bg-black relative flex flex-col items-center justify-center p-16 border-r-2 border-zinc-800">
+                        <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none"></div>
+                        <h3 className="absolute top-8 left-8 text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                            <Eye className="w-4 h-4 text-lime-400" /> Live Preview Mode
                         </h3>
-                        <div className="z-10 w-full flex justify-center">
+                        <div className="z-10 w-full flex justify-center scale-100 transition-transform">
                             <PostPreview platform={platform} content={content} image={image} video={video} hashtags={hashtags} />
                         </div>
                     </div>
@@ -433,20 +434,20 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
 
                 {/* Editor Sidebar (Conditional) */}
                 {isCreating && (
-                    <div className="w-[450px] bg-zinc-900 border-l-2 border-zinc-800 p-6 flex flex-col h-full animate-in slide-in-from-right duration-300 shadow-[-10px_0px_20px_rgba(0,0,0,0.5)] z-20">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-black text-white uppercase">New Post</h3>
-                            <button onClick={() => setIsCreating(false)} className="hover:bg-zinc-800 p-2"><X className="w-5 h-5 text-zinc-400" /></button>
+                    <div className="w-[550px] bg-zinc-950 border-l-2 border-zinc-800 p-10 flex flex-col h-full animate-in slide-in-from-right duration-300 shadow-[-20px_0px_60px_rgba(0,0,0,0.8)] z-20">
+                        <div className="flex justify-between items-center mb-10 border-b-2 border-zinc-800 pb-6">
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tight italic">Compose</h3>
+                            <button onClick={() => setIsCreating(false)} className="hover:bg-zinc-900 p-3 border-2 border-transparent hover:border-zinc-800 transition-all"><X className="w-5 h-5 text-zinc-400 hover:text-white" /></button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+                        <div className="flex-1 overflow-y-auto space-y-10 pr-2 custom-scrollbar">
                             {/* Platform Select */}
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-4">
                                 {(['linkedin', 'twitter', 'instagram'] as SocialPlatform[]).map(p => (
                                     <button
                                         key={p}
                                         onClick={() => setPlatform(p)}
-                                        className={`flex items-center justify-center gap-2 py-2 border-2 uppercase text-[10px] font-bold transition-all ${platform === p ? 'bg-zinc-800 text-white border-lime-400' : 'bg-zinc-950 text-zinc-500 border-zinc-800'}`}
+                                        className={`flex items-center justify-center gap-2 py-4 border-2 uppercase text-[10px] font-black tracking-wider transition-all hover:translate-y-[-2px] ${platform === p ? 'bg-zinc-900 text-white border-lime-400 shadow-[4px_4px_0px_0px_#000]' : 'bg-black text-zinc-600 border-zinc-800 hover:border-zinc-600 hover:text-white'}`}
                                     >
                                         {getPlatformIcon(p)} {p}
                                     </button>
@@ -454,76 +455,77 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                             </div>
 
                             {/* AI Idea Input */}
-                            <div className="bg-zinc-950 border border-zinc-700 p-4 relative group">
-                                <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-                                <h3 className="text-xs font-black text-purple-400 uppercase mb-2 flex items-center gap-2">
-                                    <Wand2 className="w-3 h-3" /> Content Studio
+                            <div className="bg-black border-2 border-zinc-800 p-6 relative group shadow-sm">
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500"></div>
+                                <h3 className="text-xs font-black text-purple-400 uppercase mb-4 flex items-center gap-2 tracking-widest">
+                                    <Wand2 className="w-4 h-4" /> AI Content Studio
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-4">
                                     <input 
                                         value={topic}
                                         onChange={(e) => setTopic(e.target.value)}
                                         placeholder="What's this post about?"
-                                        className="w-full bg-zinc-900 border border-zinc-700 p-2 text-white text-sm focus:border-purple-400 focus:outline-none"
+                                        className="w-full bg-zinc-900 border-2 border-zinc-800 p-4 text-white text-sm focus:border-purple-400 focus:outline-none transition-colors font-bold"
                                     />
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-2 gap-3">
                                         <button 
                                             onClick={handleGenerateContent}
                                             disabled={isGeneratingText || !topic}
-                                            className="py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
+                                            className="py-3 bg-purple-900/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500 hover:text-black hover:border-purple-500 font-black uppercase text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             {isGeneratingText ? <Loader2 className="w-3 h-3 animate-spin" /> : "Write Caption"}
                                         </button>
                                         <button 
                                             onClick={handleGenerateImage}
                                             disabled={isGeneratingImage || !topic}
-                                            className="py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
+                                            className="py-3 bg-purple-900/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500 hover:text-black hover:border-purple-500 font-black uppercase text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             {isGeneratingImage ? <Loader2 className="w-3 h-3 animate-spin" /> : "Gen Image"}
                                         </button>
                                          <button 
                                             onClick={handleGenerateVideo}
                                             disabled={isGeneratingVideo || !topic}
-                                            className="col-span-2 py-2 bg-purple-500/20 text-purple-400 border border-purple-500 hover:bg-purple-500 hover:text-black font-bold uppercase text-[10px] transition-colors flex items-center justify-center gap-2"
+                                            className="col-span-2 py-3 bg-purple-900/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500 hover:text-black hover:border-purple-500 font-black uppercase text-[10px] tracking-wider transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                         >
                                             {isGeneratingVideo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Video className="w-3 h-3" />}
-                                            {isGeneratingVideo ? 'Creating Video...' : 'Gen Video (Veo)'}
+                                            {isGeneratingVideo ? 'Rendering Video (Veo)...' : 'Generate Video (Veo)'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Manual Edit */}
-                            <div className="space-y-4">
+                            <div className="space-y-8">
                                 <div>
-                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Caption</label>
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Caption</label>
                                     <textarea 
                                         value={content}
                                         onChange={(e) => setContent(e.target.value)}
-                                        className="w-full h-32 bg-zinc-950 border-2 border-zinc-800 p-3 text-white text-sm focus:border-lime-400 focus:outline-none resize-none"
+                                        className="w-full h-48 bg-black border-2 border-zinc-800 p-5 text-white text-sm focus:border-lime-400 focus:outline-none resize-none font-medium leading-relaxed"
+                                        placeholder="Write your post content here..."
                                     />
-                                    <div className="flex gap-2 mt-2 flex-wrap">
+                                    <div className="flex gap-2 mt-4 flex-wrap">
                                         {hashtags.map((tag, i) => (
-                                            <span key={i} className="text-[10px] text-zinc-500 bg-zinc-950 px-2 py-1 border border-zinc-800">{tag}</span>
+                                            <span key={i} className="text-[10px] font-black text-zinc-400 bg-zinc-900 px-3 py-1.5 border border-zinc-800 uppercase tracking-wide">{tag}</span>
                                         ))}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Media</label>
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Media Asset</label>
                                     {image || video ? (
-                                        <div className="relative group/img">
+                                        <div className="relative group/img bg-black border-2 border-zinc-800 p-2">
                                             {video ? (
-                                                <video src={video} controls className="w-full rounded-sm border-2 border-zinc-800" />
+                                                <video src={video} controls className="w-full border border-zinc-800" />
                                             ) : image && (
-                                                <img src={image} alt="Post media" className="w-full rounded-sm border-2 border-zinc-800" />
+                                                <img src={image} alt="Post media" className="w-full border border-zinc-800" />
                                             )}
                                             
-                                            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
                                                  {image && (
                                                     <button 
                                                         onClick={handleAnalyzeImage}
-                                                        className="p-1 bg-blue-500 text-white hover:bg-blue-400"
+                                                        className="p-3 bg-blue-500 text-white hover:bg-blue-600 border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:-translate-y-1"
                                                         title="AI Caption from Image"
                                                     >
                                                         {isAnalyzingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanEye className="w-4 h-4" />}
@@ -531,40 +533,40 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                                  )}
                                                 <button 
                                                     onClick={() => { setImage(null); setVideo(null); }}
-                                                    className="p-1 bg-red-500 text-white hover:bg-red-400"
+                                                    className="p-3 bg-red-500 text-white hover:bg-red-600 border-2 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:-translate-y-1"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="h-32 border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
-                                            <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                                            <span className="text-[10px] uppercase">No Media Selected</span>
+                                        <div className="h-48 border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600 hover:border-zinc-600 transition-colors cursor-pointer bg-zinc-900/20 hover:bg-zinc-900/40">
+                                            <ImageIcon className="w-10 h-10 mb-4 opacity-30" />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">No Media Selected</span>
                                         </div>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Schedule Date & Time</label>
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Schedule</label>
                                     <div className="relative">
                                         <input 
                                             type="datetime-local" 
                                             value={scheduledDate}
                                             onChange={(e) => setScheduledDate(e.target.value)}
-                                            className="w-full bg-zinc-950 border-2 border-zinc-800 p-3 text-white text-sm focus:border-lime-400 focus:outline-none [color-scheme:dark]"
+                                            className="w-full bg-black border-2 border-zinc-800 p-5 text-white text-sm focus:border-lime-400 focus:outline-none [color-scheme:dark] font-mono uppercase tracking-wide font-bold"
                                         />
-                                        <Clock className="w-4 h-4 text-zinc-500 absolute right-3 top-3.5 pointer-events-none" />
+                                        <Clock className="w-5 h-5 text-zinc-500 absolute right-5 top-5 pointer-events-none" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="pt-6 border-t-2 border-zinc-800 mt-auto">
+                        <div className="pt-8 border-t-2 border-zinc-800 mt-auto">
                             <button 
                                 onClick={handleSavePost}
                                 disabled={!content}
-                                className="w-full py-3 bg-lime-400 text-black font-black uppercase tracking-wider hover:bg-lime-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full py-5 bg-lime-400 text-black font-black uppercase tracking-[0.2em] text-sm hover:shadow-[6px_6px_0px_0px_#fff] hover:translate-y-[-2px] hover:translate-x-[-2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none border-2 border-lime-500"
                             >
                                 Schedule Post
                             </button>
