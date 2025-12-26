@@ -468,7 +468,7 @@ const AgentAnalytics: React.FC<{ sessions: AgentSession[] }> = ({ sessions }) =>
             <div className="bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000]">
                 <h3 className="text-xs font-black text-white uppercase mb-6 tracking-[0.2em]">Session Logs</h3>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr className="border-b-2 border-zinc-800 text-zinc-500 text-[10px] uppercase font-black tracking-[0.1em]">
                                 <th className="pb-4 pl-2">Timestamp</th>
@@ -627,8 +627,8 @@ const TextAgentBuilder: React.FC<{
     };
 
     return (
-        <div className="flex h-full gap-10">
-            <div className="w-96 flex flex-col gap-8 shrink-0 overflow-y-auto pr-4 pb-10 custom-scrollbar border-r-2 border-zinc-900">
+        <div className="flex flex-col lg:flex-row h-full gap-6 lg:gap-10">
+            <div className="w-full lg:w-96 flex flex-col gap-8 shrink-0 overflow-y-auto pr-2 pb-10 custom-scrollbar border-b-2 lg:border-b-0 lg:border-r-2 border-zinc-900 max-h-[300px] lg:max-h-none">
                 <ConfigManager 
                     savedConfigs={savedConfigs} 
                     setSavedConfigs={setSavedConfigs} 
@@ -677,7 +677,7 @@ const TextAgentBuilder: React.FC<{
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col bg-zinc-950 border-2 border-zinc-800 shadow-[8px_8px_0px_0px_#000] h-[750px] relative overflow-hidden">
+            <div className="flex-1 flex flex-col bg-zinc-950 border-2 border-zinc-800 shadow-[8px_8px_0px_0px_#000] h-[500px] lg:h-[750px] relative overflow-hidden">
                 {/* Header */}
                 <div className="bg-black border-b-2 border-zinc-800 p-6 flex justify-between items-center z-10">
                     <div className="flex items-center gap-4">
@@ -694,7 +694,7 @@ const TextAgentBuilder: React.FC<{
                     )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-black/50 scrollbar-thin scrollbar-thumb-zinc-800 relative">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 bg-black/50 scrollbar-thin scrollbar-thumb-zinc-800 relative">
                      <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none"></div>
                     {messages.length === 0 && (
                         <div className="h-full flex flex-col items-center justify-center text-zinc-700 font-mono text-xs uppercase tracking-[0.2em] opacity-80">
@@ -704,7 +704,7 @@ const TextAgentBuilder: React.FC<{
                     )}
                     {messages.map(msg => (
                         <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}>
-                            <div className={`max-w-[80%] p-5 text-sm font-medium leading-relaxed ${
+                            <div className={`max-w-[85%] md:max-w-[80%] p-4 md:p-5 text-sm font-medium leading-relaxed ${
                                 msg.role === 'user' 
                                 ? 'bg-zinc-900 text-white border-2 border-zinc-800 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]' 
                                 : 'bg-lime-400 text-black border-2 border-lime-500 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'
@@ -725,18 +725,18 @@ const TextAgentBuilder: React.FC<{
                     <div ref={messagesEndRef} />
                 </div>
                 
-                <div className="p-6 bg-black border-t-2 border-zinc-800 flex gap-0 z-10">
+                <div className="p-4 md:p-6 bg-black border-t-2 border-zinc-800 flex gap-0 z-10">
                     <input 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        className="flex-1 bg-zinc-950 border-2 border-zinc-800 border-r-0 p-5 text-white focus:outline-none focus:border-lime-400 focus:border-r-2 transition-colors font-medium placeholder:text-zinc-700 font-mono"
+                        className="flex-1 bg-zinc-950 border-2 border-zinc-800 border-r-0 p-4 md:p-5 text-white focus:outline-none focus:border-lime-400 focus:border-r-2 transition-colors font-medium placeholder:text-zinc-700 font-mono"
                         placeholder="ENTER_COMMAND..."
                     />
                     <button 
                         onClick={handleSend} 
                         disabled={!input || isTyping} 
-                        className="bg-lime-400 text-black px-8 font-black border-2 border-lime-500 hover:bg-white hover:border-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="bg-lime-400 text-black px-6 md:px-8 font-black border-2 border-lime-500 hover:bg-white hover:border-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         <Send className="w-5 h-5 stroke-[2.5]" />
                     </button>
@@ -918,8 +918,8 @@ const VoiceAgentBuilder: React.FC<{
     };
 
     return (
-        <div className="flex h-full gap-10">
-            <div className="w-96 flex flex-col gap-8 shrink-0 overflow-y-auto pr-4 pb-10 custom-scrollbar border-r-2 border-zinc-900">
+        <div className="flex flex-col lg:flex-row h-full gap-6 lg:gap-10">
+            <div className="w-full lg:w-96 flex flex-col gap-8 shrink-0 overflow-y-auto pr-2 pb-10 custom-scrollbar border-b-2 lg:border-b-0 lg:border-r-2 border-zinc-900 max-h-[300px] lg:max-h-none">
                  <ConfigManager 
                     savedConfigs={savedConfigs} 
                     setSavedConfigs={setSavedConfigs} 
@@ -1012,7 +1012,7 @@ const VoiceAgentBuilder: React.FC<{
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col bg-black border-2 border-zinc-800 shadow-[8px_8px_0px_0px_#000] h-[750px] relative overflow-hidden">
+            <div className="flex-1 flex flex-col bg-black border-2 border-zinc-800 shadow-[8px_8px_0px_0px_#000] h-[500px] lg:h-[750px] relative overflow-hidden">
                 {/* Visualizer Background */}
                 <div className="absolute inset-0 flex items-center justify-center gap-4 pointer-events-none opacity-20">
                      {[...Array(16)].map((_, i) => (
@@ -1024,16 +1024,16 @@ const VoiceAgentBuilder: React.FC<{
                      ))}
                 </div>
 
-                <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-12 text-center">
-                    <div className={`w-48 h-48 border-[6px] flex items-center justify-center mb-12 transition-all duration-300 relative ${isConnected ? 'border-lime-400 shadow-[0_0_60px_rgba(163,230,53,0.2)] bg-black' : 'border-zinc-800 bg-zinc-950'}`}>
+                <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-8 md:p-12 text-center">
+                    <div className={`w-32 h-32 md:w-48 md:h-48 border-[6px] flex items-center justify-center mb-8 md:mb-12 transition-all duration-300 relative ${isConnected ? 'border-lime-400 shadow-[0_0_60px_rgba(163,230,53,0.2)] bg-black' : 'border-zinc-800 bg-zinc-950'}`}>
                         {isConnected && (
                              <div className="absolute inset-0 border-[6px] border-lime-400 animate-ping opacity-30"></div>
                         )}
-                        {isConnected ? <Mic2 className="w-20 h-20 text-lime-400 animate-pulse" /> : <Mic className="w-20 h-20 text-zinc-800" />}
+                        {isConnected ? <Mic2 className="w-16 h-16 md:w-20 md:h-20 text-lime-400 animate-pulse" /> : <Mic className="w-16 h-16 md:w-20 md:h-20 text-zinc-800" />}
                     </div>
                     
-                    <h2 className="text-5xl font-black text-white uppercase mb-6 tracking-tighter">{isConnected ? 'Link Active' : 'Offline'}</h2>
-                    <p className="text-zinc-500 font-mono text-sm max-w-md mb-16 uppercase tracking-wide">
+                    <h2 className="text-3xl md:text-5xl font-black text-white uppercase mb-4 md:mb-6 tracking-tighter">{isConnected ? 'Link Active' : 'Offline'}</h2>
+                    <p className="text-zinc-500 font-mono text-xs md:text-sm max-w-md mb-12 md:mb-16 uppercase tracking-wide">
                         {isConnected 
                             ? "Voice Channel Open. Latency < 200ms." 
                             : "Initialize Gemini Live API connection to begin real-time voice session."}
@@ -1049,7 +1049,7 @@ const VoiceAgentBuilder: React.FC<{
                     {!isConnected ? (
                         <button 
                             onClick={connectLive}
-                            className="bg-lime-400 text-black px-12 py-6 font-black uppercase tracking-[0.2em] text-lg border-2 border-lime-500 hover:translate-y-[4px] hover:translate-x-[4px] hover:shadow-[4px_4px_0px_0px_rgba(163,230,53,0.5)] shadow-[10px_10px_0px_0px_rgba(163,230,53,0.3)] transition-all flex items-center gap-4 active:translate-y-[8px] active:translate-x-[8px] active:shadow-none"
+                            className="bg-lime-400 text-black px-8 py-4 md:px-12 md:py-6 font-black uppercase tracking-[0.2em] text-sm md:text-lg border-2 border-lime-500 hover:translate-y-[4px] hover:translate-x-[4px] hover:shadow-[4px_4px_0px_0px_rgba(163,230,53,0.5)] shadow-[10px_10px_0px_0px_rgba(163,230,53,0.3)] transition-all flex items-center gap-4 active:translate-y-[8px] active:translate-x-[8px] active:shadow-none"
                         >
                             <Activity className="w-6 h-6 stroke-[3]" />
                             Connect
@@ -1057,7 +1057,7 @@ const VoiceAgentBuilder: React.FC<{
                     ) : (
                         <button 
                             onClick={() => closeSessionRef.current?.()} 
-                            className="bg-red-600 text-white px-12 py-6 font-black uppercase tracking-[0.2em] text-lg border-2 border-red-700 hover:bg-red-500 transition-all flex items-center gap-4 shadow-[8px_8px_0px_0px_#7f1d1d] hover:translate-y-[2px] hover:translate-x-[2px] active:shadow-none active:translate-y-[6px] active:translate-x-[6px]"
+                            className="bg-red-600 text-white px-8 py-4 md:px-12 md:py-6 font-black uppercase tracking-[0.2em] text-sm md:text-lg border-2 border-red-700 hover:bg-red-500 transition-all flex items-center gap-4 shadow-[8px_8px_0px_0px_#7f1d1d] hover:translate-y-[2px] hover:translate-x-[2px] active:shadow-none active:translate-y-[6px] active:translate-x-[6px]"
                         >
                             <Square className="w-6 h-6 fill-current" />
                             Terminate
@@ -1091,27 +1091,27 @@ export const Conversations: React.FC<ConversationsProps> = ({ tenantId }) => {
 
   return (
     <div className="h-full flex flex-col animate-in fade-in duration-500">
-      <div className="mb-6 bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000] flex justify-between items-center">
+      <div className="mb-6 bg-zinc-950 border-2 border-zinc-800 p-6 md:p-8 shadow-[8px_8px_0px_0px_#000] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
            <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">AI Agents</h2>
            <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.2em]">Autonomous Workforce</p>
         </div>
-        <div className="flex bg-black border-2 border-zinc-800 p-1.5 shadow-sm">
+        <div className="flex bg-black border-2 border-zinc-800 p-1.5 shadow-sm overflow-x-auto w-full md:w-auto">
             <button 
                 onClick={() => setActiveTab('text')}
-                className={`px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider ${activeTab === 'text' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
+                className={`px-4 md:px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider whitespace-nowrap ${activeTab === 'text' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
             >
                 <MessageSquare className="w-4 h-4" /> Text
             </button>
             <button 
                 onClick={() => setActiveTab('voice')}
-                className={`px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider ${activeTab === 'voice' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
+                className={`px-4 md:px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider whitespace-nowrap ${activeTab === 'voice' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
             >
                 <Mic2 className="w-4 h-4" /> Voice
             </button>
             <button 
                 onClick={() => setActiveTab('analytics')}
-                className={`px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider ${activeTab === 'analytics' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
+                className={`px-4 md:px-8 py-3 font-black uppercase text-xs flex items-center gap-2 transition-all tracking-wider whitespace-nowrap ${activeTab === 'analytics' ? 'bg-lime-400 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-zinc-900'}`}
             >
                 <BarChart3 className="w-4 h-4" /> Analytics
             </button>

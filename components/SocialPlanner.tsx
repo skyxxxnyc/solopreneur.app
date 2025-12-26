@@ -265,7 +265,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
         const days = [];
 
         for (let i = 0; i < firstDay; i++) {
-            days.push(<div key={`empty-${i}`} className="min-h-[140px] bg-zinc-950 border-r border-b border-zinc-800/30"></div>);
+            days.push(<div key={`empty-${i}`} className="min-h-[100px] md:min-h-[140px] bg-zinc-950 border-r border-b border-zinc-800/30"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -274,19 +274,19 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
             const isToday = new Date().toDateString() === dateStr;
 
             days.push(
-                <div key={day} className={`min-h-[140px] border-r border-b border-zinc-800/30 p-3 hover:bg-zinc-900/50 transition-colors group relative ${isToday ? 'bg-zinc-900/30' : ''}`}>
-                    <div className={`text-right text-xs font-mono font-bold mb-4 ${isToday ? 'text-lime-400' : 'text-zinc-600 group-hover:text-zinc-400'}`}>
+                <div key={day} className={`min-h-[100px] md:min-h-[140px] border-r border-b border-zinc-800/30 p-2 md:p-3 hover:bg-zinc-900/50 transition-colors group relative ${isToday ? 'bg-zinc-900/30' : ''}`}>
+                    <div className={`text-right text-xs font-mono font-bold mb-2 md:mb-4 ${isToday ? 'text-lime-400' : 'text-zinc-600 group-hover:text-zinc-400'}`}>
                         {day}
                     </div>
                     <div className="space-y-2">
                         {daysPosts.map(post => (
-                            <div key={post.id} className={`flex items-center gap-2 p-1.5 border-l-[3px] bg-zinc-900 text-[10px] font-bold uppercase truncate cursor-pointer hover:brightness-125 transition-all shadow-sm ${getPlatformColor(post.platform)}`}>
+                            <div key={post.id} className={`flex items-center gap-2 p-1 md:p-1.5 border-l-[3px] bg-zinc-900 text-[8px] md:text-[10px] font-bold uppercase truncate cursor-pointer hover:brightness-125 transition-all shadow-sm ${getPlatformColor(post.platform)}`}>
                                 {getPlatformIcon(post.platform)}
-                                <span className="truncate tracking-wide">{post.content}</span>
+                                <span className="truncate tracking-wide hidden md:inline">{post.content}</span>
                             </div>
                         ))}
                     </div>
-                    {isToday && <div className="absolute top-4 left-4 w-1.5 h-1.5 bg-lime-400 rounded-full shadow-[0_0_8px_rgba(163,230,53,0.8)]"></div>}
+                    {isToday && <div className="absolute top-3 left-3 md:top-4 md:left-4 w-1.5 h-1.5 bg-lime-400 rounded-full shadow-[0_0_8px_rgba(163,230,53,0.8)]"></div>}
                 </div>
             );
         }
@@ -301,14 +301,14 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
     };
 
     return (
-        <div className="h-full flex flex-col animate-in fade-in duration-500">
-             <div className="mb-6 bg-zinc-950 border-2 border-zinc-800 p-8 shadow-[8px_8px_0px_0px_#000] flex justify-between items-center">
+        <div className="h-full flex flex-col animate-in fade-in duration-500 relative">
+             <div className="mb-6 bg-zinc-950 border-2 border-zinc-800 p-6 md:p-8 shadow-[8px_8px_0px_0px_#000] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-black text-white tracking-tighter uppercase mb-2">Social Planner</h2>
                     <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.2em]">Strategy & Distribution</p>
                 </div>
                 {!isCreating && (
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
                         <div className="flex bg-black border-2 border-zinc-800 p-1">
                             <button 
                                 onClick={() => setViewMode('calendar')}
@@ -325,7 +325,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                         </div>
                         <button 
                             onClick={() => setIsCreating(true)}
-                            className="flex items-center gap-3 bg-lime-400 text-black px-8 py-4 font-black uppercase tracking-wider border-2 border-lime-500 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#000] shadow-[6px_6px_0px_0px_#000] transition-all"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-3 bg-lime-400 text-black px-6 py-4 font-black uppercase tracking-wider border-2 border-lime-500 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_#000] shadow-[6px_6px_0px_0px_#000] transition-all whitespace-nowrap"
                         >
                             <Plus className="w-5 h-5 stroke-[3]" />
                             Create Post
@@ -340,17 +340,17 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                         {viewMode === 'calendar' ? (
                             <div className="flex-1 flex flex-col overflow-hidden">
                                 {/* Calendar Header */}
-                                <div className="p-8 border-b-2 border-zinc-800 flex justify-between items-center bg-zinc-950">
-                                    <div className="flex items-center gap-8">
-                                        <button onClick={() => changeMonth(-1)} className="p-3 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors border-2 border-transparent hover:border-zinc-800"><ChevronLeft className="w-5 h-5" /></button>
-                                        <h3 className="text-2xl font-black text-white uppercase w-72 text-center tracking-tight italic">
-                                            {currentCalendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                <div className="p-4 md:p-8 border-b-2 border-zinc-800 flex justify-between items-center bg-zinc-950">
+                                    <div className="flex items-center gap-4 md:gap-8">
+                                        <button onClick={() => changeMonth(-1)} className="p-2 md:p-3 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors border-2 border-transparent hover:border-zinc-800"><ChevronLeft className="w-5 h-5" /></button>
+                                        <h3 className="text-lg md:text-2xl font-black text-white uppercase w-32 md:w-72 text-center tracking-tight italic">
+                                            {currentCalendarDate.toLocaleString('default', { month: 'short', year: 'numeric' })}
                                         </h3>
-                                        <button onClick={() => changeMonth(1)} className="p-3 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors border-2 border-transparent hover:border-zinc-800"><ChevronRight className="w-5 h-5" /></button>
+                                        <button onClick={() => changeMonth(1)} className="p-2 md:p-3 hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors border-2 border-transparent hover:border-zinc-800"><ChevronRight className="w-5 h-5" /></button>
                                     </div>
                                     <button 
                                         onClick={() => setCurrentCalendarDate(new Date())}
-                                        className="text-xs font-bold uppercase text-zinc-500 hover:text-lime-400 border-b-2 border-transparent hover:border-lime-400 transition-all tracking-wider pb-1"
+                                        className="text-[10px] md:text-xs font-bold uppercase text-zinc-500 hover:text-lime-400 border-b-2 border-transparent hover:border-lime-400 transition-all tracking-wider pb-1"
                                     >
                                         Jump to Today
                                     </button>
@@ -358,8 +358,8 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                 
                                 {/* Days Header */}
                                 <div className="grid grid-cols-7 bg-zinc-950 border-b-2 border-zinc-800">
-                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                        <div key={day} className="p-4 text-center text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] border-r-2 border-zinc-800 last:border-r-0">
+                                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                                        <div key={day} className="p-2 md:p-4 text-center text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] border-r-2 border-zinc-800 last:border-r-0">
                                             {day}
                                         </div>
                                     ))}
@@ -371,14 +371,15 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                 </div>
                             </div>
                         ) : (
-                             <div className="flex-1 overflow-y-auto space-y-6 p-8">
+                             <div className="flex-1 overflow-y-auto space-y-6 p-4 md:p-8">
                                 <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em] mb-6 px-1">Upcoming Content Queue</h3>
                                 {tenantPosts.sort((a,b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()).map(post => (
-                                    <div key={post.id} className="bg-zinc-900 border-2 border-zinc-800 p-8 hover:border-lime-400 transition-all group flex gap-10 shadow-[6px_6px_0px_0px_#000] hover:translate-x-1">
+                                    <div key={post.id} className="bg-zinc-900 border-2 border-zinc-800 p-6 md:p-8 hover:border-lime-400 transition-all group flex flex-col md:flex-row gap-6 md:gap-10 shadow-[6px_6px_0px_0px_#000] hover:translate-x-1">
                                         {/* Date Badge */}
-                                        <div className="flex flex-col items-center justify-center p-0 bg-black border-2 border-zinc-800 w-28 h-28 shrink-0 shadow-sm">
-                                            <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] pt-3 border-b-2 border-zinc-800 w-full text-center pb-2">{new Date(post.scheduledDate).toLocaleString('default', { month: 'short' })}</span>
-                                            <span className="text-4xl text-white font-black flex-1 flex items-center">{new Date(post.scheduledDate).getDate()}</span>
+                                        <div className="flex flex-row md:flex-col items-center justify-between md:justify-center p-0 bg-black border-2 border-zinc-800 w-full md:w-28 md:h-28 shrink-0 shadow-sm px-4 md:px-0 py-2 md:py-0">
+                                            <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] md:pt-3 md:border-b-2 border-zinc-800 w-auto md:w-full md:text-center md:pb-2">{new Date(post.scheduledDate).toLocaleString('default', { month: 'short' })}</span>
+                                            <span className="text-xl md:text-4xl text-white font-black flex-1 flex items-center">{new Date(post.scheduledDate).getDate()}</span>
+                                            <span className="md:hidden text-xs text-zinc-500 font-mono">{new Date(post.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                         </div>
                                         
                                         {/* Content */}
@@ -388,7 +389,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                                     {getPlatformIcon(post.platform)}
                                                     {post.platform}
                                                 </div>
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button onClick={() => setPosts(posts.filter(p => p.id !== post.id))} className="text-zinc-600 hover:text-red-500 transition-colors p-2 hover:bg-zinc-800"><Trash2 className="w-5 h-5"/></button>
                                                 </div>
                                             </div>
@@ -404,7 +405,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                                         <Video className="w-3 h-3 text-cyan-400" /> Video Asset
                                                     </div>
                                                 )}
-                                                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase ml-auto">
+                                                <div className="hidden md:flex items-center gap-2 text-[10px] text-zinc-500 font-mono uppercase ml-auto">
                                                     <Clock className="w-3 h-3" /> {new Date(post.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                                 </div>
                                             </div>
@@ -421,41 +422,41 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                     </div>
                 ) : (
                     // PREVIEW AREA (When Creating)
-                    <div className="flex-1 bg-black relative flex flex-col items-center justify-center p-16 border-r-2 border-zinc-800">
+                    <div className="flex-1 bg-black relative flex flex-col items-center justify-center p-8 md:p-16 border-r-2 border-zinc-800 min-h-[500px]">
                         <div className="absolute inset-0 bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none"></div>
-                        <h3 className="absolute top-8 left-8 text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <h3 className="absolute top-4 left-4 md:top-8 md:left-8 text-xs font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-3">
                             <Eye className="w-4 h-4 text-lime-400" /> Live Preview Mode
                         </h3>
-                        <div className="z-10 w-full flex justify-center scale-100 transition-transform">
+                        <div className="z-10 w-full flex justify-center scale-90 md:scale-100 transition-transform">
                             <PostPreview platform={platform} content={content} image={image} video={video} hashtags={hashtags} />
                         </div>
                     </div>
                 )}
 
-                {/* Editor Sidebar (Conditional) */}
+                {/* Editor Sidebar (Conditional) - Fullscreen on mobile */}
                 {isCreating && (
-                    <div className="w-[550px] bg-zinc-950 border-l-2 border-zinc-800 p-10 flex flex-col h-full animate-in slide-in-from-right duration-300 shadow-[-20px_0px_60px_rgba(0,0,0,0.8)] z-20">
-                        <div className="flex justify-between items-center mb-10 border-b-2 border-zinc-800 pb-6">
+                    <div className="fixed inset-0 md:static md:w-[550px] bg-zinc-950 border-l-2 border-zinc-800 p-6 md:p-10 flex flex-col h-full animate-in slide-in-from-right duration-300 md:shadow-[-20px_0px_60px_rgba(0,0,0,0.8)] z-50">
+                        <div className="flex justify-between items-center mb-6 md:mb-10 border-b-2 border-zinc-800 pb-6">
                             <h3 className="text-2xl font-black text-white uppercase tracking-tight italic">Compose</h3>
                             <button onClick={() => setIsCreating(false)} className="hover:bg-zinc-900 p-3 border-2 border-transparent hover:border-zinc-800 transition-all"><X className="w-5 h-5 text-zinc-400 hover:text-white" /></button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-10 pr-2 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto space-y-6 md:space-y-10 pr-2 custom-scrollbar">
                             {/* Platform Select */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-3 gap-2 md:gap-4">
                                 {(['linkedin', 'twitter', 'instagram'] as SocialPlatform[]).map(p => (
                                     <button
                                         key={p}
                                         onClick={() => setPlatform(p)}
-                                        className={`flex items-center justify-center gap-2 py-4 border-2 uppercase text-[10px] font-black tracking-wider transition-all hover:translate-y-[-2px] ${platform === p ? 'bg-zinc-900 text-white border-lime-400 shadow-[4px_4px_0px_0px_#000]' : 'bg-black text-zinc-600 border-zinc-800 hover:border-zinc-600 hover:text-white'}`}
+                                        className={`flex items-center justify-center gap-2 py-3 md:py-4 border-2 uppercase text-[10px] font-black tracking-wider transition-all hover:translate-y-[-2px] ${platform === p ? 'bg-zinc-900 text-white border-lime-400 shadow-[4px_4px_0px_0px_#000]' : 'bg-black text-zinc-600 border-zinc-800 hover:border-zinc-600 hover:text-white'}`}
                                     >
-                                        {getPlatformIcon(p)} {p}
+                                        <span className="hidden md:inline">{getPlatformIcon(p)}</span> {p.slice(0, 3)}
                                     </button>
                                 ))}
                             </div>
 
                             {/* AI Idea Input */}
-                            <div className="bg-black border-2 border-zinc-800 p-6 relative group shadow-sm">
+                            <div className="bg-black border-2 border-zinc-800 p-4 md:p-6 relative group shadow-sm">
                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500"></div>
                                 <h3 className="text-xs font-black text-purple-400 uppercase mb-4 flex items-center gap-2 tracking-widest">
                                     <Wand2 className="w-4 h-4" /> AI Content Studio
@@ -501,7 +502,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                     <textarea 
                                         value={content}
                                         onChange={(e) => setContent(e.target.value)}
-                                        className="w-full h-48 bg-black border-2 border-zinc-800 p-5 text-white text-sm focus:border-lime-400 focus:outline-none resize-none font-medium leading-relaxed"
+                                        className="w-full h-32 md:h-48 bg-black border-2 border-zinc-800 p-5 text-white text-sm focus:border-lime-400 focus:outline-none resize-none font-medium leading-relaxed"
                                         placeholder="Write your post content here..."
                                     />
                                     <div className="flex gap-2 mt-4 flex-wrap">
@@ -521,7 +522,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                                 <img src={image} alt="Post media" className="w-full border border-zinc-800" />
                                             )}
                                             
-                                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                            <div className="absolute top-4 right-4 flex gap-2 opacity-100 md:opacity-0 group-hover/img:opacity-100 transition-opacity">
                                                  {image && (
                                                     <button 
                                                         onClick={handleAnalyzeImage}
@@ -540,7 +541,7 @@ export const SocialPlanner: React.FC<SocialPlannerProps> = ({ tenantId }) => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="h-48 border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600 hover:border-zinc-600 transition-colors cursor-pointer bg-zinc-900/20 hover:bg-zinc-900/40">
+                                        <div className="h-32 md:h-48 border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600 hover:border-zinc-600 transition-colors cursor-pointer bg-zinc-900/20 hover:bg-zinc-900/40">
                                             <ImageIcon className="w-10 h-10 mb-4 opacity-30" />
                                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">No Media Selected</span>
                                         </div>

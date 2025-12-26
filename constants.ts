@@ -1,6 +1,5 @@
 
-
-import { Contact, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost, Appointment, InboxThread, Tenant, User } from './types';
+import { Contact, Company, PipelineStage, Funnel, EmailCampaign, AgentConfiguration, EmailTemplate, WorkflowTemplate, SocialPost, Appointment, InboxThread, Tenant, User } from './types';
 
 export const MOCK_TENANTS: Tenant[] = [
   { id: 't1', name: 'HQ Agency', type: 'agency' },
@@ -76,6 +75,33 @@ export const INITIAL_CONTACTS: Contact[] = [
     tags: ['design', 'retainer'],
     customFields: []
   }
+];
+
+export const INITIAL_COMPANIES: Company[] = [
+    {
+        id: 'c1',
+        tenantId: 't2',
+        name: 'TechFlow Inc.',
+        industry: 'Software',
+        website: 'https://techflow.example',
+        phone: '+1 (555) 100-2000',
+        address: '123 Silicon Valley, CA',
+        tags: ['Enterprise', 'Tech'],
+        lastActivity: '3h ago',
+        customFields: []
+    },
+    {
+        id: 'c2',
+        tenantId: 't3',
+        name: 'BuildRight LLC',
+        industry: 'Construction',
+        website: 'https://buildright.example',
+        phone: '+1 (555) 300-4000',
+        address: '456 Industrial Way, TX',
+        tags: ['Local Biz'],
+        lastActivity: '1d ago',
+        customFields: []
+    }
 ];
 
 export const INITIAL_FUNNELS: Funnel[] = [

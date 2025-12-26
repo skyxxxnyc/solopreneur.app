@@ -38,6 +38,19 @@ export interface Contact {
   customFields: CustomField[];
 }
 
+export interface Company {
+  id: string;
+  tenantId: string;
+  name: string;
+  industry: string;
+  website: string;
+  phone: string;
+  address: string;
+  tags: string[];
+  lastActivity: string;
+  customFields: CustomField[];
+}
+
 // Backwards compatibility alias if needed, but we will migrate to Contact
 export type Lead = Contact;
 
@@ -184,6 +197,12 @@ export interface WorkflowTemplate {
   name: string;
   description: string;
   nodes: WorkflowNode[];
+}
+
+export interface WorkflowNodeStatus {
+    id: string;
+    status: 'idle' | 'running' | 'success' | 'error';
+    errorMessage?: string;
 }
 
 export interface WorkflowLog {

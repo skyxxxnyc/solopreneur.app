@@ -1,21 +1,22 @@
 
 import React, { useState } from 'react';
-import { Contact, StageId, UserRole } from '../types';
-import { Mail, Phone, Tag, Plus, Search, Trash2, X, Save, Edit2, Filter } from 'lucide-react';
+import { Contact, Company, StageId, UserRole } from '../types';
+import { Mail, Phone, Tag, Plus, Search, Trash2, X, Save, Edit2, Filter, Building2 } from 'lucide-react';
 
 interface ContactsProps {
   contacts: Contact[];
   setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
+  setCompanies: React.Dispatch<React.SetStateAction<Company[]>>;
   tenantId: string;
   userRole: UserRole;
 }
 
-export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenantId, userRole }) => {
+export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, setCompanies, tenantId, userRole }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [entityType, setEntityType] = useState<'individual' | 'organization'>('individual');
 
-  // Filter contacts for current tenant
   const tenantContacts = contacts.filter(c => c.tenantId === tenantId);
 
   const filteredContacts = tenantContacts.filter(c => 
@@ -29,7 +30,23 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
     if (!editingContact) return;
 
     if (isNew) {
-      setContacts(prev => [...prev, { ...editingContact, id: Date.now().toString(), tenantId }]);
+      if (entityType === 'organization') {
+        const newCompany: Company = {
+            id: Date.now().toString(),
+            tenantId,
+            name: editingContact.company || editingContact.name,
+            industry: 'General',
+            website: '',
+            phone: editingContact.phone,
+            address: '',
+            tags: editingContact.tags,
+            lastActivity: 'Added',
+            customFields: editingContact.customFields
+        };
+        setCompanies(prev => [...prev, newCompany]);
+      } else {
+        setContacts(prev => [...prev, { ...editingContact, id: Date.now().toString(), tenantId }]);
+      }
     } else {
       setContacts(prev => prev.map(c => c.id === editingContact.id ? editingContact : c));
     }
@@ -50,6 +67,7 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
 
   const openNewContact = () => {
     setIsNew(true);
+    setEntityType('individual');
     setEditingContact({
       id: '',
       tenantId: tenantId,
@@ -162,18 +180,10 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
                 </td>
               </tr>
             ))}
-            {filteredContacts.length === 0 && (
-                <tr>
-                    <td colSpan={5} className="p-20 text-center text-zinc-700 font-mono uppercase tracking-[0.2em] text-xs">
-                        No matches found in database
-                    </td>
-                </tr>
-            )}
           </tbody>
         </table>
       </div>
 
-      {/* Edit Drawer / Modal */}
       {editingContact && (
         <div className="absolute inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="w-full md:w-[700px] bg-black border-l-2 border-zinc-800 shadow-[-20px_0px_50px_rgba(0,0,0,0.9)] h-full flex flex-col animate-in slide-in-from-right duration-300">
@@ -188,10 +198,29 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
                 </div>
                 
                 <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-10 space-y-10">
+                    {isNew && (
+                        <div className="grid grid-cols-2 gap-4 bg-zinc-950 border-2 border-zinc-800 p-2">
+                             <button 
+                                type="button" 
+                                onClick={() => setEntityType('individual')}
+                                className={`py-3 px-4 font-black uppercase text-xs transition-all border-2 ${entityType === 'individual' ? 'bg-lime-400 text-black border-lime-500' : 'text-zinc-500 border-transparent'}`}
+                             >
+                                 Individual Lead
+                             </button>
+                             <button 
+                                type="button" 
+                                onClick={() => setEntityType('organization')}
+                                className={`py-3 px-4 font-black uppercase text-xs transition-all border-2 ${entityType === 'organization' ? 'bg-lime-400 text-black border-lime-500' : 'text-zinc-500 border-transparent'}`}
+                             >
+                                 Organization
+                             </button>
+                        </div>
+                    )}
+
                     <div className="space-y-8">
                         <div className="grid grid-cols-2 gap-8">
                             <div className="col-span-2">
-                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Entity Name</label>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">{entityType === 'organization' ? 'Organization Name' : 'Entity Name'}</label>
                                 <input 
                                     required
                                     value={editingContact.name}
@@ -200,129 +229,86 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
                                     placeholder="FULL NAME"
                                 />
                             </div>
-                            <div className="col-span-2">
-                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Organization</label>
-                                <div className="relative">
-                                    <input 
-                                        value={editingContact.company}
-                                        onChange={e => setEditingContact({...editingContact, company: e.target.value})}
-                                        className="w-full bg-zinc-950 border-2 border-zinc-800 p-4 pl-12 text-white focus:outline-none focus:border-lime-400 transition-colors font-mono text-sm"
-                                        placeholder="Company Name"
-                                    />
-                                    <span className="absolute left-4 top-4.5 w-4 h-4 bg-zinc-800 rounded-none"></span>
+                            {entityType === 'individual' && (
+                                <div className="col-span-2">
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Organization</label>
+                                    <div className="relative">
+                                        <input 
+                                            value={editingContact.company}
+                                            onChange={e => setEditingContact({...editingContact, company: e.target.value})}
+                                            className="w-full bg-zinc-950 border-2 border-zinc-800 p-4 pl-12 text-white focus:outline-none focus:border-lime-400 transition-colors font-mono text-sm"
+                                            placeholder="Company Name"
+                                        />
+                                        <Building2 className="absolute left-4 top-4.5 w-4 h-4 text-zinc-600" />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                             
-                            <div>
-                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Contact Email</label>
+                            <div className={entityType === 'organization' ? 'col-span-2' : ''}>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">{entityType === 'organization' ? 'Headquarters Phone' : 'Contact Email'}</label>
                                 <input 
-                                    required
-                                    type="email"
-                                    value={editingContact.email}
-                                    onChange={e => setEditingContact({...editingContact, email: e.target.value})}
+                                    required={entityType === 'individual'}
+                                    type={entityType === 'individual' ? 'email' : 'text'}
+                                    value={entityType === 'individual' ? editingContact.email : editingContact.phone}
+                                    onChange={e => entityType === 'individual' ? setEditingContact({...editingContact, email: e.target.value}) : setEditingContact({...editingContact, phone: e.target.value})}
                                     className="w-full bg-zinc-950 border-2 border-zinc-800 p-4 text-white focus:outline-none focus:border-lime-400 transition-colors font-mono text-sm"
-                                    placeholder="email@domain.com"
+                                    placeholder={entityType === 'individual' ? "email@domain.com" : "+1 ..."}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Phone</label>
-                                <input 
-                                    value={editingContact.phone}
-                                    onChange={e => setEditingContact({...editingContact, phone: e.target.value})}
-                                    className="w-full bg-zinc-950 border-2 border-zinc-800 p-4 text-white focus:outline-none focus:border-lime-400 transition-colors font-mono text-sm"
-                                    placeholder="+1 (555) 000-0000"
-                                />
-                            </div>
+                            {entityType === 'individual' && (
+                                <div>
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Phone</label>
+                                    <input 
+                                        value={editingContact.phone}
+                                        onChange={e => setEditingContact({...editingContact, phone: e.target.value})}
+                                        className="w-full bg-zinc-950 border-2 border-zinc-800 p-4 text-white focus:outline-none focus:border-lime-400 transition-colors font-mono text-sm"
+                                        placeholder="+1 (555) 000-0000"
+                                    />
+                                </div>
+                            )}
                         </div>
 
-                        <div className="p-8 bg-zinc-950 border-2 border-zinc-800 space-y-6 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-zinc-900 -rotate-45 transform translate-x-8 -translate-y-8"></div>
-                            <h4 className="text-xs font-black text-white uppercase flex items-center gap-3 tracking-widest border-b-2 border-zinc-900 pb-4">
-                                <Tag className="w-4 h-4 text-lime-400" /> Deal Metadata
-                            </h4>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Value ($)</label>
-                                    <input 
-                                        type="number"
-                                        value={editingContact.value}
-                                        onChange={e => setEditingContact({...editingContact, value: Number(e.target.value)})}
-                                        className="w-full bg-black border-2 border-zinc-800 p-3 text-lime-400 font-mono font-bold focus:outline-none focus:border-lime-400"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Pipeline Stage</label>
-                                    <select 
-                                        value={editingContact.stage}
-                                        onChange={e => setEditingContact({...editingContact, stage: e.target.value as StageId})}
-                                        className="w-full bg-black border-2 border-zinc-800 p-3 text-white font-bold uppercase text-xs focus:outline-none focus:border-lime-400 appearance-none"
-                                    >
-                                        <option value="new">New Lead</option>
-                                        <option value="contacted">Hot Lead</option>
-                                        <option value="appointment">Booking Confirmed</option>
-                                        <option value="negotiation">Negotiation</option>
-                                        <option value="closed">Closed Won</option>
-                                    </select>
+                        {entityType === 'individual' && (
+                            <div className="p-8 bg-zinc-950 border-2 border-zinc-800 space-y-6 relative overflow-hidden">
+                                <h4 className="text-xs font-black text-white uppercase flex items-center gap-3 tracking-widest border-b-2 border-zinc-900 pb-4">
+                                    <Tag className="w-4 h-4 text-lime-400" /> Deal Metadata
+                                </h4>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Value ($)</label>
+                                        <input 
+                                            type="number"
+                                            value={editingContact.value}
+                                            onChange={e => setEditingContact({...editingContact, value: Number(e.target.value)})}
+                                            className="w-full bg-black border-2 border-zinc-800 p-3 text-lime-400 font-mono font-bold focus:outline-none focus:border-lime-400"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Pipeline Stage</label>
+                                        <select 
+                                            value={editingContact.stage}
+                                            onChange={e => setEditingContact({...editingContact, stage: e.target.value as StageId})}
+                                            className="w-full bg-black border-2 border-zinc-800 p-3 text-white font-bold uppercase text-xs focus:outline-none focus:border-lime-400 appearance-none"
+                                        >
+                                            <option value="new">New Lead</option>
+                                            <option value="contacted">Hot Lead</option>
+                                            <option value="appointment">Booking Confirmed</option>
+                                            <option value="negotiation">Negotiation</option>
+                                            <option value="closed">Closed Won</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Tags (comma separated)</label>
-                                <input 
-                                    value={editingContact.tags.join(', ')}
-                                    onChange={e => setEditingContact({...editingContact, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
-                                    className="w-full bg-black border-2 border-zinc-800 p-3 text-zinc-300 text-xs focus:outline-none focus:border-lime-400 font-mono"
-                                    placeholder="VIP, Referral, Q4..."
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="pt-8 border-t-2 border-zinc-800">
-                        <div className="flex justify-between items-center mb-6">
-                            <h4 className="text-xs font-black text-zinc-400 uppercase tracking-wider">Custom Fields</h4>
-                            <button 
-                                type="button"
-                                onClick={() => setEditingContact({...editingContact, customFields: [...editingContact.customFields, {id: Date.now().toString(), label: '', value: ''}]})}
-                                className="text-[10px] text-lime-400 font-black uppercase hover:underline flex items-center gap-2 border border-lime-400/30 px-3 py-1 bg-lime-400/5 hover:bg-lime-400/10"
-                            >
-                                <Plus className="w-3 h-3" /> Add Field
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            {editingContact.customFields.map((field, idx) => (
-                                <div key={field.id} className="flex gap-4 items-center">
-                                    <input 
-                                        placeholder="LABEL"
-                                        value={field.label}
-                                        onChange={(e) => {
-                                            const newFields = [...editingContact.customFields];
-                                            newFields[idx].label = e.target.value;
-                                            setEditingContact({...editingContact, customFields: newFields});
-                                        }}
-                                        className="w-1/3 bg-zinc-950 border-2 border-zinc-800 p-3 text-xs font-bold uppercase text-zinc-400 focus:outline-none focus:border-lime-400"
-                                    />
-                                    <input 
-                                        placeholder="VALUE"
-                                        value={field.value}
-                                        onChange={(e) => {
-                                            const newFields = [...editingContact.customFields];
-                                            newFields[idx].value = e.target.value;
-                                            setEditingContact({...editingContact, customFields: newFields});
-                                        }}
-                                        className="flex-1 bg-black border-2 border-zinc-800 p-3 text-sm text-white focus:outline-none focus:border-lime-400 font-mono"
-                                    />
-                                    <button 
-                                        type="button" 
-                                        onClick={() => {
-                                            const newFields = editingContact.customFields.filter((_, i) => i !== idx);
-                                            setEditingContact({...editingContact, customFields: newFields});
-                                        }}
-                                        className="p-3 border-2 border-zinc-800 text-zinc-600 hover:text-red-500 hover:border-red-500 transition-colors"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ))}
+                        )}
+                        
+                        <div>
+                            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-wider mb-2">Tags</label>
+                            <input 
+                                value={editingContact.tags.join(', ')}
+                                onChange={e => setEditingContact({...editingContact, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
+                                className="w-full bg-zinc-950 border-2 border-zinc-800 p-3 text-zinc-300 text-xs focus:outline-none focus:border-lime-400 font-mono"
+                                placeholder="VIP, Referral, Q4..."
+                            />
                         </div>
                     </div>
                 </form>
@@ -332,7 +318,7 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
                         <button 
                             type="button" 
                             onClick={() => handleDelete(editingContact.id)}
-                            className={`flex items-center gap-2 font-black uppercase text-[10px] tracking-wider px-4 py-2 border-2 ${userRole === 'user' ? 'border-zinc-800 text-zinc-700 cursor-not-allowed' : 'border-red-900/50 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors'}`}
+                            className={`flex items-center gap-2 font-black uppercase text-[10px] tracking-wider px-4 py-2 border-2 ${userRole === 'user' ? 'border-zinc-800 text-zinc-700 cursor-not-allowed' : 'border-red-900/50 text-red-500 hover:bg-red-500 hover:text-white transition-colors'}`}
                             disabled={userRole === 'user'}
                         >
                             <Trash2 className="w-3 h-3" />
@@ -341,18 +327,11 @@ export const Contacts: React.FC<ContactsProps> = ({ contacts, setContacts, tenan
                     )}
                     <div className="flex gap-4 ml-auto">
                         <button 
-                            type="button"
-                            onClick={() => setEditingContact(null)}
-                            className="px-8 py-4 font-bold text-zinc-500 uppercase text-xs hover:text-white transition-colors tracking-wide"
-                        >
-                            Cancel
-                        </button>
-                        <button 
                             onClick={handleSave}
-                            className="flex items-center gap-3 bg-lime-400 text-black px-10 py-4 font-black uppercase tracking-wider border-2 border-lime-500 hover:shadow-[6px_6px_0px_0px_#fff] hover:translate-y-[-2px] hover:translate-x-[-2px] transition-all"
+                            className="flex items-center gap-3 bg-lime-400 text-black px-10 py-4 font-black uppercase tracking-wider border-2 border-lime-500 hover:shadow-[6px_6px_0px_0px_#fff] hover:translate-y-[-2px] transition-all"
                         >
                             <Save className="w-4 h-4" />
-                            {isNew ? 'Create Record' : 'Save Changes'}
+                            {isNew ? (entityType === 'organization' ? 'Create Account' : 'Create Record') : 'Save Changes'}
                         </button>
                     </div>
                 </div>
